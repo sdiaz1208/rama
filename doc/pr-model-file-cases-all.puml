@@ -1,0 +1,64 @@
+@startuml
+title PR Cases for a .model File
+
+start
+
+:File path matches a configured model extension;
+
+if (File differs between PR source and target?) then (yes)
+  if (File status?) then (added)
+    :Case: added in source branch;
+  elseif (deleted)
+    :Case: deleted in source branch;
+  elseif (renamed/moved)
+    :Case: renamed or moved model file;
+  else (modified)
+    :Case: modified model file;
+  endif
+
+  if (Which branch changed it since merge base?) then (source only)
+    :Case: source-only changed;
+  elseif (target only)
+    :Case: target-only changed;
+  else (both)
+    :Case: both source and target changed;
+  endif
+
+  if (Can source and target versions be loaded?) then (yes)
+    if (Do they conform to the resolved metamodel?) then (yes)
+      if (Any semantic model difference?) then (no)
+        :Case: textual-only change;
+        :Report outcome: relevant file but no semantic model change;
+      else (yes)
+        :Case: semantic model change;
+
+        if (Were both branches changed semantically?) then (yes)
+          if (Conflict?) then (yes)
+            :Case: semantic conflict;
+            :Report outcome: semantic changes with conflicts;
+          else (no)
+            :Case: no conflict;
+            :Report outcome: semantic changes without conflicts;
+          endif
+        else (no)
+          :Case: semantic change from one side only;
+          :Report outcome: semantic changes without conflicts;
+        endif
+      endif
+    else (no)
+      :Case: metamodel conformance failure;
+      :Report outcome: analysis incomplete or invalid model;
+    endif
+  else (no)
+    :Case: parse/load failure;
+    :Report outcome: analysis incomplete;
+  endif
+else (no)
+  :Case: unchanged at PR tip;
+  :RAMA generates "No changes detected" report;
+endif
+
+:Report posted as PR comment;
+
+stop
+@enduml
