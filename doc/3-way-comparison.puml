@@ -1,0 +1,27 @@
+@startuml
+title PR Cases - 3-way comparison
+
+start
+
+:Case: 3-way comparison;
+' :Both source and target changed; potential conflicts;
+
+if (Any syntactic model difference?) then (no)
+  :Case: textual-only change;
+  :Report outcome: relevant file but no syntactic model change;
+else (yes)
+  :Case: syntactic model change;
+
+  if (Conflict?) then (yes)
+    :Case: syntactic conflict;
+    :Report outcome: syntactic changes with conflicts;
+  else (no)
+    :Case: no conflict;
+    :Report outcome: syntactic changes without conflicts;
+  endif
+endif
+
+:Report posted as PR comment;
+
+stop
+@enduml

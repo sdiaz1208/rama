@@ -1,0 +1,20 @@
+@startuml
+title PR Cases - 2-way comparison
+
+start
+
+:Case: 2-way comparison;
+' :Changes in one branch only;
+
+if (Any syntactic model difference?) then (no)
+  :Case: textual-only change;
+  :Report outcome: relevant file but no syntactic model change;
+else (yes)
+  :Case: syntactic change from one side only;
+  :Report outcome: syntactic changes without conflicts;
+endif
+
+:Report posted as PR comment;
+
+stop
+@enduml

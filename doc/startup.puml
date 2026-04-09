@@ -1,0 +1,23 @@
+@startuml
+title RAMA Startup Sequence
+
+start
+
+:Detect PR creation or synchronization;
+:Trigger GitHub Actions workflow;
+:Import, build, and execute RAMA;
+:Load rama.json configuration file;
+
+if (Is rama.json empty?) then (yes)
+  :Use default configuration;
+  :Set model/metamodel extensions to .model/.ecore;
+  :Use Ecore metamodel from EMF;
+else (no)
+  :Determine file extensions and metamodels to use;
+endif
+
+:Fetch affected model/metamodel files from GitHub API;
+:Analyze each affected file → <pr-model-file-cases.puml>;
+
+stop
+@enduml
