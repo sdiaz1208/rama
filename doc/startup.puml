@@ -1,4 +1,4 @@
-@startuml
+@startuml startup
 title RAMA Startup Sequence
 
 start
@@ -17,7 +17,7 @@ else (no)
 endif
 
 :Fetch affected model/metamodel files from GitHub API;
-:Analyze each affected file → <pr-model-file-cases.puml>;
+:Analyze each affected file → <pr-model-file-cases-all.puml>;
 
 stop
 @enduml
