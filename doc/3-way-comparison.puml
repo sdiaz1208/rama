@@ -3,16 +3,22 @@ title PR Cases - 3-way comparison
 
 start
 
-:Case: 3-way comparison;
-' :Both source and target changed; potential conflicts;
+:Case: 3-way comparison (origin, target, source);
+note right
+  Preconditions:
+  - source changed vs merge base (origin)
+  - target changed vs merge base (origin)
+  So two-sided edits are possible and conflict checks matter.
+end note
 
-if (Any syntactic model difference?) then (no)
-  :Case: textual-only change;
+if (Syntactic difference between target and source?) then (no)
+  :Case: textual-only change (text differs, model equal);
   :Report outcome: relevant file but no syntactic model change;
 else (yes)
   :Case: syntactic model change;
 
-  if (Conflict?) then (yes)
+  :Compute deltas (origin->target, origin->source);
+  if (Syntactic conflict?) then (yes)
     :Case: syntactic conflict;
     :Report outcome: syntactic changes with conflicts;
   else (no)
@@ -21,7 +27,7 @@ else (yes)
   endif
 endif
 
-:Report posted as PR comment;
+:Report posted/updated as PR comment;
 
 stop
 @enduml

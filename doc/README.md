@@ -114,10 +114,10 @@ This file lists the practical cases that can occur when a PR touches a file with
 ## Question
 
 ### Prompt
-The pr-model-file-cases.puml file contains a UML activity diagram that details the possible cases for a file change in a PR. I'm interested in studying this for my model change analysis tool. However, I'm not entirely sure how the status of the file (added/deleted/modified) is useful.
+The pr-model-file-cases-all.puml file contains a UML activity diagram that details the possible cases for a file change in a PR. I'm interested in studying this for my model change analysis tool. However, I'm not entirely sure how the status of the file (added/deleted/modified) is useful.
 
 ### Answer (OpenAI Codex v0.118.0 - model: gpt-5.4 high)
-In this diagram, file status is useful, but only as an early routing decision, not as the main analytical result. That role is visible in the first branch of the activity flow at doc/pr-model-file-cases.puml:8 and in the markdown summary at doc/pr-model-file-cases.md:9.
+In this diagram set, file status is useful, but only as an early routing decision, not as the main analytical result. That role is visible in the early routing branch in `doc/pr-model-file-cases-all.puml` and in the tables in this `doc/README.md`.
 
 What it is good for:
 - added means there is no source-side predecessor to compare against, so treat it as model creation.
@@ -126,9 +126,9 @@ What it is good for:
 - renamed/moved matters because path changed, but the logical model may be the same file identity.
 
 What it is not good for:
-- It does not tell you whether the change is syntactic or textual-only. That comes later in the flow at doc/pr-model-file-cases.puml:29.
-- It does not tell you whether there is a conflict. That depends on merge-base analysis and both-side syntactic changes at doc/pr-model-file-cases.puml:19 and doc/pr-model-file-cases.puml:35.
-- It does not capture the meaningful model-level categories like add/delete/update/move of elements, which are listed at doc/pr-model-file-cases.md:63.
+- It does not tell you whether the change is syntactic or textual-only. That comes later in the flow (see `doc/2-way-comparison.puml` and `doc/3-way-comparison.puml`).
+- It does not tell you whether there is a conflict. That depends on merge-base analysis and both-side syntactic changes (see `doc/3-way-comparison.puml` and section 8 in this `doc/README.md`).
+- It does not capture the meaningful model-level categories like add/delete/update/move of elements, which are listed in section 7 in this `doc/README.md`.
 
 So for your tool, I would treat file status as input-shaping metadata:
 

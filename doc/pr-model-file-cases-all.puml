@@ -1,29 +1,52 @@
 @startuml pr-model-file-cases-all
-title PR Cases for a model file
+title PR Cases for a model file (per-path flow)
 
 start
 
-:File path matches a configured model extension;
+note right
+  Terminology (see doc/README.md):
+  - source = PR head ref
+  - target = PR base ref
+  - merge base = common ancestor commit
+end note
 
-if (Can source and target versions be loaded?) then (yes)
-  if (Do they conform to the resolved metamodel?) then (yes)
+:Is path relevant (matches configured model extension)?;
+if (Relevant?) then (yes)
+  :Determine file status (added/deleted/modified/renamed);
 
-    if (Are there changes in both branches?) then (yes)
-      :Case: 3-way comparison;
-    else (no)
-      :Case: 2-way comparison;
-    endif
-
+  if (Added or deleted?) then (yes)
+    :Report outcome: creation/deletion at file level;
   else (no)
-    :Case: metamodel conformance failure;
-    :Report outcome: analysis incomplete or invalid model;
+    :Resolve metamodel for this file;
+    if (Metamodel resolved?) then (yes)
+      :Load source and target versions as models;
+      if (Both versions load?) then (yes)
+        if (Both conform to resolved metamodel?) then (yes)
+          :Compute merge base and decide comparison mode;
+          if (Both source and target changed vs merge base?) then (yes)
+            :Case: 3-way comparison → <3-way-comparison.puml>;
+          else (no)
+            :Case: 2-way comparison → <2-way-comparison.puml>;
+          endif
+        else (no)
+          :Case: metamodel conformance failure;
+          :Report outcome: analysis incomplete or invalid model;
+        endif
+      else (no)
+        :Case: parse/load failure;
+        :Report outcome: analysis incomplete;
+      endif
+    else (no)
+      :Case: metamodel resolution failure;
+      :Report outcome: analysis incomplete;
+    endif
   endif
+
 else (no)
-  :Case: parse/load failure;
-  :Report outcome: analysis incomplete;
+  :Skip: not a configured model file;
 endif
 
-:Report posted as PR comment;
+:Report posted/updated as PR comment;
 
 stop
 @enduml
