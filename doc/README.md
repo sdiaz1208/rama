@@ -8,7 +8,31 @@ This file lists the practical cases that can occur when a PR touches a file with
 - **This document:** whenever we write *source branch* we mean the GitHub head ref and *target branch* means the GitHub base ref; *merge base* maps to the common ancestor commit from the `merges` API and is where we evaluate the origin-relative cases in section 2.
 - **EMF Compare:** we usually align the GitHub roles with EMF Compare sides as follows: the target branch tip becomes the *left* or *reference* model, the source branch tip becomes the *right* or *working* model, and the merge base computation provides the *origin* or *ancestor* model that represents their shared history. Use this mapping when interpreting the case tables in terms of EMF comparison inputs (e.g., "target branch" entries refer to "left" in EMF Compare).
 
-## 1. File-level cases
+## Behavior
+
+At a high level, RAMA runs inside a GitHub Actions workflow on PR events. It loads configuration (from `rama.json` when present), inspects the PR changed paths, and for each relevant model/metamodel file decides which comparison mode applies (2-way or 3-way) before producing/updating a PR comment report.
+
+The following diagrams summarize the main workflow:
+
+### Startup
+
+![RAMA startup sequence](out/startup.svg)
+
+### Per-file flow (all cases)
+
+![Per-path decision flow for a relevant model file](out/pr-model-file-cases-all.svg)
+
+### 2-way comparison
+
+![2-way comparison flow](out/2-way-comparison.svg)
+
+### 3-way comparison
+
+![3-way comparison flow](out/3-way-comparison.svg)
+
+## Cases
+
+### 1. File-level cases
 
 **Dimension →** file status
 
@@ -22,7 +46,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 1.6 | extension changed into model | File was not previously treated as model, now it is | Analyze as newly relevant |
 | 1.7 | extension changed out of model | File was previously model, now it is not | Report loss of relevance if needed |
 
-## 2. Branch-origin cases relative to merge base
+### 2. Branch-origin cases relative to merge base
 
 **Dimension →** branch origin
 
@@ -32,7 +56,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 2.2 | target-only changed | Target changed since merge base, source did not | PR context changed; re-analysis needed on PR update |
 | 2.3 | both source and target changed | Both branches changed after divergence detection becomes relevant |
 
-## 3. Textual change impact cases
+### 3. Textual change impact cases
 
 **Dimension →** text impact
 
@@ -41,7 +65,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 3.1 | serialization-only changes | Text differs but loaded model information is equivalent | trailing whitespace removal, indentation changes, line ending changes, serializer reordering that preserves syntactics, non-syntactic comments |
 | 3.2 | syntactic model changes | Text differs and the EMF model information changes | object rename, attribute update, reference retargeting, object add/delete, containment move, ordered feature reorder |
 
-## 4. Load and parse cases
+### 4. Load and parse cases
 
 **Dimension →** parsing
 
@@ -50,7 +74,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 4.1 | both versions load | Source and target versions can be loaded as models | Continue to syntactic comparison |
 | 4.2 | one or more versions fail to load | Source, target and/or merge base versions are malformed or unresolved | Invalid model/s |
 
-## 5. Metamodel conformance cases
+### 5. Metamodel conformance cases
 
 **Dimension →** conformance
 
@@ -59,7 +83,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 5.1 | both conform | Both versions validate against the resolved metamodel | Continue |
 | 5.2 | one or more versions do not conform | source, target and/or both versions violate metamodel | Invalid model/s |
 
-## 6. Metamodel dependency cases
+### 6. Metamodel dependency cases
 
 **Dimension →** model/metamodel relation
 
@@ -70,7 +94,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 6.3 | model and metamodel changed consistently | Combined evolution is coherent | try to load, potential loading error |
 | 6.4 | model and metamodel changed inconsistently | Model may no longer load or conform | loading error |
 
-## 7. syntactic-difference cases
+### 7. syntactic-difference cases
 
 **Dimension →** syntactic diff
 
@@ -83,7 +107,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 7.5 | moves only | Element location/containment changes | containment relocation |
 | 7.6 | mixed changes | Combination of add/delete/update/move | typical real PR |
 
-## 8. Conflict cases when both branches changed
+### 8. Conflict cases when both branches changed
 
 **Dimension →** conflict
 
@@ -98,7 +122,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 8.7 | incompatible ordered change | Ordered feature changed incompatibly | list reordered in conflicting ways |
 | 8.8 | incompatible add with same identity/key | Both sides add elements that cannot coexist | duplicate logical identifier |
 
-## 9. Report outcome cases
+### 9. Report outcome cases
 
 | ID | Outcome | Meaning | When to use it |
 | --- | --- | --- | --- |
@@ -109,7 +133,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 | 9.5 | analysis incomplete due to parse/load failure | One version could not be loaded | malformed file, missing dependency |
 | 9.7 | analysis incomplete due to metamodel resolution failure | Required metamodel could not be resolved | missing or incompatible metamodel |
 
-## 10. Minimal per-file decision flow
+### Minimal per-file decision flow
 
 1. Is the file relevant according to configured model extensions?
 2. Is it added, deleted, renamed, or modified?
