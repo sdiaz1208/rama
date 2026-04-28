@@ -17,13 +17,13 @@ if (Syntactic difference between target and source?) then (no)
 else (yes)
   :Case: syntactic model change;
 
-  :Compute deltas (origin->target, origin->source);
+  :Compute 3-way comparison (origin->target, origin->source);
   if (Syntactic conflict?) then (yes)
     :Case: syntactic conflict;
-    :Report outcome: syntactic changes with conflicts;
+    :Report outcome: side-by-side changes with conflicts;
   else (no)
     :Case: no conflict;
-    :Report outcome: syntactic changes without conflicts;
+    :Report outcome: two-way syntactic changes without conflicts;
   endif
 endif
 

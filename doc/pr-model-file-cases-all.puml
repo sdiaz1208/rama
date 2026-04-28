@@ -7,7 +7,7 @@ note right
   Terminology (see doc/README.md):
   - source = PR head ref
   - target = PR base ref
-  - merge base = common ancestor commit
+  - merge base = common ancestor
 end note
 
 :Is path relevant (matches configured model extension)?;
@@ -21,16 +21,11 @@ if (Relevant?) then (yes)
     if (Metamodel resolved?) then (yes)
       :Load source and target versions as models;
       if (Both versions load?) then (yes)
-        if (Both conform to resolved metamodel?) then (yes)
-          :Compute merge base and decide comparison mode;
-          if (Both source and target changed vs merge base?) then (yes)
-            :Case: 3-way comparison → <3-way-comparison.puml>;
-          else (no)
-            :Case: 2-way comparison → <2-way-comparison.puml>;
-          endif
+        :Compute merge base and decide comparison mode;
+        if (Both source and target changed vs merge base?) then (yes)
+          :Case: 3-way comparison → <3-way-comparison.puml>;
         else (no)
-          :Case: metamodel conformance failure;
-          :Report outcome: analysis incomplete or invalid model;
+          :Case: 2-way comparison → <2-way-comparison.puml>;
         endif
       else (no)
         :Case: parse/load failure;
