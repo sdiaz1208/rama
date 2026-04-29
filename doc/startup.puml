@@ -1,0 +1,25 @@
+@startuml startup
+title RAMA Startup Sequence
+
+start
+
+:Detect PR event (pull_request opened/reopened/synchronize);
+:Trigger GitHub Actions workflow;
+:Checkout PR head (source) revision;
+:Build and execute RAMA;
+:Look for `rama.json` configuration file;
+
+if (Is `rama.json` missing/empty/invalid?) then (yes)
+  :Display warning about configuration;
+  :Use default configuration;
+else (no)
+  :Parse configuration;
+  :Set model/metamodel extensions 
+   and metamodel resolution rules;
+endif
+
+:Fetch PR file list and changed paths from GitHub API;
+:Analyze each affected file → <pr-model-file-cases-all.puml>;
+
+stop
+@enduml

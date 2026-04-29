@@ -1,0 +1,33 @@
+@startuml 3-way-comparison
+title PR Cases - 3-way comparison
+
+start
+
+:Case: 3-way comparison (origin, target, source);
+note right
+  Preconditions:
+  - source changed vs merge base (origin)
+  - target changed vs merge base (origin)
+  So two-sided edits are possible and conflict checks matter.
+end note
+
+if (Syntactic difference between target and source?) then (no)
+  :Case: textual-only change (text differs, model equal);
+  :Report outcome: relevant file but no syntactic model change;
+else (yes)
+  :Case: syntactic model change;
+
+  :Compute 3-way comparison (origin->target, origin->source);
+  if (Syntactic conflict?) then (yes)
+    :Case: syntactic conflict;
+    :Report outcome: side-by-side changes with conflicts;
+  else (no)
+    :Case: no conflict;
+    :Report outcome: two-way syntactic changes without conflicts;
+  endif
+endif
+
+:Report posted/updated as PR comment;
+
+stop
+@enduml
