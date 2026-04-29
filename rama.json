@@ -1,0 +1,5 @@
+{
+	"model_extensions": [".model"],
+	"metamodel_extensions": [".ecore"],
+	"metamodels": []
+}
