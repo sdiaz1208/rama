@@ -5,13 +5,16 @@ import org.kohsuke.github.GHPullRequestFileDetail;
 import java.util.List;
 
 public class Main {
-	public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         // Parse the pull request number from the command line arguments.
         // In a real GitHub Action, this would come from the environment or action inputs.
         int prNumber = Integer.parseInt(args[0]);
 
+        // Load RAMA configuration once at application startup.
+        ConfigService.RamaConfig config = new ConfigService().loadConfig();
+
         // Create a GitHubService instance using environment variables provided by GitHub Actions.
-        GitHubService gitHubService = GitHubService.fromEnvironment();
+        GitHubService gitHubService = GitHubService.fromEnvironment(config);
         List<GHPullRequestFileDetail> files = gitHubService.getModelFiles(prNumber);
 
         // Print the affected model files in the pull request.

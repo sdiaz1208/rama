@@ -11,8 +11,8 @@ public class GitHubService {
     // Target repository to analyze, selected by GITHUB_REPOSITORY
     private final GHRepository repository;
 
-    // Service for loading RAMA configuration, which defines model file extensions and other settings.
-    private final ConfigService configService;
+    // RAMA configuration used to select model and metamodel files from pull requests.
+    private final ConfigService.RamaConfig config;
 
     // Values provided by GitHub Actions for authenticating and locating the repository under analysis.
     private static final String GITHUB_TOKEN_ENV = "GITHUB_TOKEN";
@@ -23,23 +23,24 @@ public class GitHubService {
      * 
      * @param repository the GHRepository instance representing the target repository to analyze
      */
-    private GitHubService(GHRepository repository, ConfigService configService) {
+    private GitHubService(GHRepository repository, ConfigService.RamaConfig config) {
         this.repository = repository;
-        this.configService = configService;
+        this.config = config;
     }
 
     /**
      * Factory method to create a GitHubService instance using environment variables provided by GitHub Actions.
      * 
+     * @param config the loaded RAMA configuration used to select relevant model files
      * @return a GitHubService instance configured with the repository specified in the environment variables
      * @throws IOException if there is an error communicating with the GitHub API or reading the configuration
      */
-    public static GitHubService fromEnvironment() throws IOException {
+    public static GitHubService fromEnvironment(ConfigService.RamaConfig config) throws IOException {
         String token = System.getenv(GITHUB_TOKEN_ENV);
         String repoName = System.getenv(GITHUB_REPOSITORY_ENV);
 
         GitHub github = new GitHubBuilder().withOAuthToken(token).build();
-        return new GitHubService(github.getRepository(repoName), new ConfigService());
+        return new GitHubService(github.getRepository(repoName), config);
     }
 
     /**
