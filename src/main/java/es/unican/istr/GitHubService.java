@@ -3,6 +3,8 @@ package es.unican.istr;
 import org.kohsuke.github.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,25 +46,115 @@ public class GitHubService {
     }
 
     /**
-     * Fetches the list of files affected in the specified pull request and filters them to include only
-     * those with extensions defined as model or metamodel extensions in the RAMA configuration.
+     * Fetches the model/metamodel files affected in the specified pull request and returns the
+     * contents of the source, target, and merge-base versions.
      * 
      * @param prNumber the number of the pull request to analyze
-     * @return a list of GHPullRequestFileDetail objects representing the model files in a pull request
-     * @throws IOException if there is an error communicating with the GitHub API 
-     *         or reading the configuration
+     * @return a list of model comparison inputs representing the model files in a pull request
+     * @throws IOException if there is an error communicating with the GitHub API
      */
-    public List<GHPullRequestFileDetail> getModelFiles(int prNumber) throws IOException {
-        ConfigService.RamaConfig config = configService.loadConfig();
-        List<GHPullRequestFileDetail> modelFiles = new ArrayList<>();
+    public List<ModelComparisonInput> getModelFiles(int prNumber) throws IOException {
+        // Fetch the pull request and its source and target branches.
+        GHPullRequest pullRequest = repository.getPullRequest(prNumber);
+        GHCommitPointer sourceBranch = pullRequest.getHead();
+        GHCommitPointer targetBranch = pullRequest.getBase();
+        String baseCommitSha = findMergeBaseCommitSha(sourceBranch, targetBranch);
 
-        for (GHPullRequestFileDetail file : repository.getPullRequest(prNumber).listFiles()) {
-            if (config.isModelFile(file.getFilename())) {
-                modelFiles.add(file);
+        List<ModelComparisonInput> modelFiles = new ArrayList<>();
+
+        for (GHPullRequestFileDetail file : pullRequest.listFiles()) {
+            if (isRelevantModelFile(file, config)) {
+                modelFiles.add(toModelComparisonInput(file, sourceBranch, targetBranch, baseCommitSha));
             }
         }
 
         return modelFiles;
+    }
+
+    /**
+     * Finds the merge base commit SHA for the source and target branches of a pull request.
+     * 
+     * @param sourceBranch the source branch of the pull request
+     * @param targetBranch the target branch of the pull request
+     * @return the SHA of the merge base commit
+     * @throws IOException if there is an error communicating with the GitHub API
+     */
+    private String findMergeBaseCommitSha(
+        GHCommitPointer sourceBranch,
+        GHCommitPointer targetBranch
+    ) throws IOException {
+        GHRepository targetRepository = targetBranch.getRepository();
+        GHCommit targetCommit = targetRepository.getCommit(targetBranch.getSha());
+        GHCommit sourceCommit = sourceBranch.getRepository().getCommit(sourceBranch.getSha());
+
+        return targetRepository.getCompare(targetCommit, sourceCommit)
+                .getMergeBaseCommit()
+                .getSHA1();
+    }
+
+    /**
+     * Determines if a given pull request file is relevant for RAMA analysis based on its filename and 
+     * the RAMA configuration. 
+     * 
+     * @param file the GHPullRequestFileDetail representing the file changed in the pull request
+     * @param config the RAMA configuration containing the model file extensions
+     * @return true if the file is relevant for RAMA analysis, false otherwise
+     */
+    private boolean isRelevantModelFile(GHPullRequestFileDetail file, ConfigService.RamaConfig config) {
+        return config.isModelFile(file.getFilename())
+                || (file.getPreviousFilename() != null && config.isModelFile(file.getPreviousFilename()));
+    }
+
+    /**
+     * Converts a pull request file detail into a ModelComparisonInput by fetching the contents of the file
+     * from the source branch, target branch, and merge base commit.
+     * 
+     * @param file the GHPullRequestFileDetail representing the file changed in the pull request
+     * @param sourceBranch the source branch of the pull request
+     * @param targetBranch the target branch of the pull request
+     * @param baseCommitSha the SHA of the merge base commit
+     * @return a ModelComparisonInput containing the contents of the file from the source, target, and base commits
+     * @throws IOException if there is an error communicating with the GitHub API
+     */
+    private ModelComparisonInput toModelComparisonInput(
+            GHPullRequestFileDetail file,
+            GHCommitPointer sourceBranch,
+            GHCommitPointer targetBranch,
+            String baseCommitSha
+    ) throws IOException {
+        String sourcePath = file.getFilename();
+        String targetPath = file.getPreviousFilename() == null ? file.getFilename() : file.getPreviousFilename();
+
+        String sourceContent = fetchFileContent(sourceBranch.getRepository(), sourcePath, sourceBranch.getSha());
+        String targetContent = fetchFileContent(targetBranch.getRepository(), targetPath, targetBranch.getSha());
+        String baseContent = fetchFileContent(targetBranch.getRepository(), targetPath, baseCommitSha);
+
+        return new ModelComparisonInput(file.getFilename(), sourceContent, targetContent, baseContent);
+    }
+
+    /**
+     * Fetches the content of a file from a specific commit in the repository. 
+     * If the file does not exist in that commit, returns null.
+     * 
+     * @param repository the GHRepository object representing the repository
+     * @param repositoryPath the path of the file in the repository
+     * @param commitSha the SHA of the commit from which to fetch the file
+     * @return the content of the file as a String, or null if the file does not exist in the specified commit
+     * @throws IOException if there is an error communicating with the GitHub API
+     */
+    private String fetchFileContent(
+            GHRepository repository,
+            String repositoryPath,
+            String commitSha
+    ) throws IOException {
+        try {
+            GHContent content = repository.getFileContent(repositoryPath, commitSha);
+            try (InputStream contentStream = content.read()) {
+                return new String(contentStream.readAllBytes(), StandardCharsets.UTF_8);
+            }
+        } catch (GHFileNotFoundException e) {
+            return null;
+        }
     }
 
 }
