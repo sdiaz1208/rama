@@ -43,15 +43,15 @@ public class SimpleEMFCompare {
 
         registerMetamodels(resourceSet);
 
-        Resource target = loadResource(resourceSet, input.filename(), "target", input.targetContent());
         Resource source = loadResource(resourceSet, input.filename(), "source", input.sourceContent());
+        Resource target = loadResource(resourceSet, input.filename(), "target", input.targetContent());
         Resource base = input.baseContent() == null
                 ? null
                 : loadResource(resourceSet, input.filename(), "base", input.baseContent());
 
         IComparisonScope scope = new DefaultComparisonScope(
-                target,
                 source,
+                target,
                 base
         );
 

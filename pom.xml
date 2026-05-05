@@ -67,6 +67,13 @@
 			<artifactId>org.eclipse.epsilon.modiff.emfcompare</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+
+		<!-- PlantUML formatter -->
+		<dependency>
+			<groupId>net.sourceforge.plantuml</groupId>
+			<artifactId>plantuml</artifactId>
+			<version>1.2026.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>

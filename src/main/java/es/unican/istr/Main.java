@@ -17,6 +17,7 @@ public class Main {
         GitHubService gitHubService = GitHubService.fromEnvironment(config);
         List<ModelComparisonInput> files = gitHubService.getModelFiles(prNumber);
         SimpleEMFCompare emfCompare = new SimpleEMFCompare(config);
+        MunidiffRenderer munidiffRenderer = new MunidiffRenderer();
 
         // Print the affected model files in the pull request and their EMF comparison result.
         System.out.println("Affected model files:");
@@ -29,6 +30,16 @@ public class Main {
             System.out.println("Target content length: " + contentLength(file.targetContent()));
             System.out.println("Base content length: " + contentLength(file.baseContent()));
             System.out.println("Differences: " + comparison.getDifferences().size());
+
+            boolean ecoreDiff = config.metamodelExtensions().stream()
+                    .anyMatch(extension -> file.filename().endsWith(extension));
+            MunidiffRenderer.RenderedMunidiff rendered = munidiffRenderer.render(comparison, ecoreDiff);
+
+            System.out.println("Unified diff:");
+            System.out.println(rendered.unifiedDiff());
+            System.out.println("PlantUML:");
+            System.out.println(rendered.plantuml());
+            System.out.println("SVG length: " + rendered.svg().length());
         }
     }
 
