@@ -61,6 +61,10 @@ public class ConfigService {
             return modelFileExtensions().stream().anyMatch(filename::endsWith);
         }
 
+        public List<String> metamodelPaths() {
+            return metamodels == null ? List.of() : metamodels;
+        }
+
         // Both model and metamodel files are relevant PR files for RAMA analysis.
         private List<String> modelFileExtensions() {
             List<String> extensions = new ArrayList<>();
