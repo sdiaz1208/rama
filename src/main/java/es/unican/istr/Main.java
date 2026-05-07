@@ -7,23 +7,31 @@ import org.eclipse.emf.compare.Comparison;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        // Parse the pull request number from the command line arguments.
-        // In a real GitHub Action, this would come from the environment or action inputs.
+        // The GitHub Action passes the pull request number as the first argument.
+        // RAMA uses that PR number to fetch changed files and publish the final report.
         int prNumber = Integer.parseInt(args[0]);
 
-        // Load RAMA configuration once at application startup.
+        // Load the RAMA configuration before creating services so file selection,
+        // metamodel handling, and comparison behavior share the same settings.
         ConfigService.RamaConfig config = new ConfigService().loadConfig();
 
-        // Create a GitHubService instance using environment variables provided by GitHub Actions.
+        // Reuse one GitHub service for every GitHub API operation in this run:
+        // reading PR files, fetching file contents, and posting the PR comment.
         GitHubService gitHubService = GitHubService.fromEnvironment(config);
         List<ModelComparisonInput> files = gitHubService.getModelFiles(prNumber);
+
+        // Prepare the local analysis and rendering services. GitHubService has already
+        // converted remote PR files into ModelComparisonInput objects for comparison.
         SimpleEMFCompare emfCompare = new SimpleEMFCompare(config);
         MunidiffRenderer munidiffRenderer = new MunidiffRenderer();
         List<GitHubService.RenderedSvgReport> renderedSvgReports = new ArrayList<>();
 
-        // Print the affected model files in the pull request and their EMF comparison result.
+        // Analyze each relevant model file and keep lightweight console output for
+        // GitHub Actions logs. The rendered SVG itself is saved for the PR comment.
         System.out.println("Affected model files:");
         for (ModelComparisonInput file : files) {
+            // EMF Compare computes the semantic/model-level differences between
+            // the source, target, and merge-base versions fetched from GitHub.
             Comparison comparison = emfCompare.compare(file);
 
             System.out.println("--------------------------------");
@@ -33,13 +41,19 @@ public class Main {
             System.out.println("Base content length: " + contentLength(file.baseContent()));
             System.out.println("Differences: " + comparison.getDifferences().size());
 
+            // Munidiff needs a different matcher/formatter for Ecore metamodels.
+            // The configured metamodel extensions decide which rendering path to use.
             boolean ecoreDiff = config.metamodelExtensions().stream()
                     .anyMatch(extension -> file.filename().endsWith(extension));
             MunidiffRenderer.RenderedMunidiff rendered = munidiffRenderer.render(comparison, ecoreDiff);
 
+            // Store the SVG per file so the final PR comment can include all reports
+            // in one update instead of creating one GitHub comment per file.
             renderedSvgReports.add(new GitHubService.RenderedSvgReport(file.filename(), rendered.svg()));
         }
 
+        // Publish the full analysis result back to the pull request. Existing RAMA
+        // comments are updated in place so repeated workflow runs do not duplicate them.
         gitHubService.postRenderedSvgReport(prNumber, renderedSvgReports);
     }
 
