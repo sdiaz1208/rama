@@ -16,6 +16,9 @@ public class GitHubService {
     // RAMA configuration used to select model and metamodel files from pull requests.
     private final ConfigService.RamaConfig config;
 
+    // Encodes PlantUML reports as URLs that GitHub can render as SVG images.
+    private final PlantUMLEncoderService plantUMLEncoderService;
+
     // Values provided by GitHub Actions for authenticating and locating the repository under analysis.
     private static final String GITHUB_TOKEN_ENV = "GITHUB_TOKEN";
     private static final String GITHUB_REPOSITORY_ENV = "GITHUB_REPOSITORY";
@@ -26,9 +29,14 @@ public class GitHubService {
      * 
      * @param repository the GHRepository instance representing the target repository to analyze
      */
-    private GitHubService(GHRepository repository, ConfigService.RamaConfig config) {
+    private GitHubService(
+            GHRepository repository,
+            ConfigService.RamaConfig config,
+            PlantUMLEncoderService plantUMLEncoderService
+    ) {
         this.repository = repository;
         this.config = config;
+        this.plantUMLEncoderService = plantUMLEncoderService;
     }
 
     /**
@@ -43,7 +51,7 @@ public class GitHubService {
         String repoName = System.getenv(GITHUB_REPOSITORY_ENV);
 
         GitHub github = new GitHubBuilder().withOAuthToken(token).build();
-        return new GitHubService(github.getRepository(repoName), config);
+        return new GitHubService(github.getRepository(repoName), config, new PlantUMLEncoderService());
     }
 
     /**
@@ -73,13 +81,13 @@ public class GitHubService {
     }
 
     /**
-     * Posts or updates a pull request comment containing the rendered SVG report.
+     * Posts or updates a pull request comment containing SVG report renders.
      *
      * @param prNumber the pull request number to comment on
-     * @param reports the rendered SVG reports to publish
+     * @param reports the PlantUML reports to publish as rendered SVG images
      * @throws IOException if there is an error communicating with the GitHub API
      */
-    public void postRenderedSvgReport(int prNumber, List<RenderedSvgReport> reports) throws IOException {
+    public void postRenderedSvgReport(int prNumber, List<PlantUmlReport> reports) throws IOException {
         String body = buildCommentBody(reports);
         GHIssue issue = repository.getIssue(prNumber);
 
@@ -180,12 +188,12 @@ public class GitHubService {
     }
 
     /**
-     * Builds the body of a GitHub comment containing the rendered SVG reports.
+     * Builds the body of a GitHub comment containing rendered SVG images.
      * 
-     * @param reports the list of rendered SVG reports
+     * @param reports the list of PlantUML reports to render
      * @return the body of the GitHub comment as a String
      */
-    private String buildCommentBody(List<RenderedSvgReport> reports) {
+    private String buildCommentBody(List<PlantUmlReport> reports) {
         StringBuilder body = new StringBuilder();
         body.append(COMMENT_MARKER).append("\n");
         body.append("## RAMA Analysis Report").append("\n\n");
@@ -195,13 +203,13 @@ public class GitHubService {
             return body.toString();
         }
 
-        for (RenderedSvgReport report : reports) {
+        for (PlantUmlReport report : reports) {
+            String imageUrl = plantUMLEncoderService.generateURL(report.plantuml());
             body.append("### <code>").append(escapeHtml(report.filename())).append("</code>\n\n");
             body.append("<details>\n");
             body.append("<summary>Rendered SVG</summary>\n\n");
-            body.append("```svg\n");
-            body.append(report.svg()).append("\n");
-            body.append("```\n\n");
+            body.append("<img src=\"").append(imageUrl).append("\" alt=\"RAMA diagram for ");
+            body.append(escapeHtml(report.filename())).append("\" />\n\n");
             body.append("</details>\n\n");
         }
 
@@ -222,12 +230,12 @@ public class GitHubService {
     }
 
     /**
-     * A record representing a rendered SVG report for a model file.
+     * A record representing a PlantUML report for a model file.
      * 
      * @param filename the name of the model file
-     * @param svg the rendered SVG content
+     * @param plantuml the PlantUML source to encode as an SVG image URL
      */
-    public record RenderedSvgReport(String filename, String svg) {
+    public record PlantUmlReport(String filename, String plantuml) {
     }
 
 }

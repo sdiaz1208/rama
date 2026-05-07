@@ -24,10 +24,10 @@ public class Main {
         // converted remote PR files into ModelComparisonInput objects for comparison.
         SimpleEMFCompare emfCompare = new SimpleEMFCompare(config);
         MunidiffRenderer munidiffRenderer = new MunidiffRenderer();
-        List<GitHubService.RenderedSvgReport> renderedSvgReports = new ArrayList<>();
+        List<GitHubService.PlantUmlReport> plantUmlReports = new ArrayList<>();
 
         // Analyze each relevant model file and keep lightweight console output for
-        // GitHub Actions logs. The rendered SVG itself is saved for the PR comment.
+        // GitHub Actions logs. The PlantUML report is saved for the PR comment.
         System.out.println("Affected model files:");
         for (ModelComparisonInput file : files) {
             // EMF Compare computes the semantic/model-level differences between
@@ -47,14 +47,14 @@ public class Main {
                     .anyMatch(extension -> file.filename().endsWith(extension));
             MunidiffRenderer.RenderedMunidiff rendered = munidiffRenderer.render(comparison, ecoreDiff);
 
-            // Store the SVG per file so the final PR comment can include all reports
-            // in one update instead of creating one GitHub comment per file.
-            renderedSvgReports.add(new GitHubService.RenderedSvgReport(file.filename(), rendered.svg()));
+            // Store the PlantUML source per file so GitHubService can encode it
+            // as a renderable SVG image in one PR comment update.
+            plantUmlReports.add(new GitHubService.PlantUmlReport(file.filename(), rendered.plantuml()));
         }
 
         // Publish the full analysis result back to the pull request. Existing RAMA
         // comments are updated in place so repeated workflow runs do not duplicate them.
-        gitHubService.postRenderedSvgReport(prNumber, renderedSvgReports);
+        gitHubService.postRenderedSvgReport(prNumber, plantUmlReports);
     }
 
     /**
