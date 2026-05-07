@@ -19,6 +19,7 @@ public class GitHubService {
     // Values provided by GitHub Actions for authenticating and locating the repository under analysis.
     private static final String GITHUB_TOKEN_ENV = "GITHUB_TOKEN";
     private static final String GITHUB_REPOSITORY_ENV = "GITHUB_REPOSITORY";
+    private static final String COMMENT_MARKER = "<!-- RAMA:SVG-REPORT -->";
 
     /**
      * Private constructor to enforce the use of the factory method for instantiation.
@@ -69,6 +70,27 @@ public class GitHubService {
         }
 
         return modelFiles;
+    }
+
+    /**
+     * Posts or updates a pull request comment containing the rendered SVG report.
+     *
+     * @param prNumber the pull request number to comment on
+     * @param reports the rendered SVG reports to publish
+     * @throws IOException if there is an error communicating with the GitHub API
+     */
+    public void postRenderedSvgReport(int prNumber, List<RenderedSvgReport> reports) throws IOException {
+        String body = buildCommentBody(reports);
+        GHIssue issue = repository.getIssue(prNumber);
+
+        for (GHIssueComment comment : issue.listComments()) {
+            if (comment.getBody() != null && comment.getBody().contains(COMMENT_MARKER)) {
+                comment.update(body);
+                return;
+            }
+        }
+
+        issue.comment(body);
     }
 
     /**
@@ -155,6 +177,57 @@ public class GitHubService {
         } catch (GHFileNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Builds the body of a GitHub comment containing the rendered SVG reports.
+     * 
+     * @param reports the list of rendered SVG reports
+     * @return the body of the GitHub comment as a String
+     */
+    private String buildCommentBody(List<RenderedSvgReport> reports) {
+        StringBuilder body = new StringBuilder();
+        body.append(COMMENT_MARKER).append("\n");
+        body.append("## RAMA Analysis Report").append("\n\n");
+
+        if (reports.isEmpty()) {
+            body.append("No model files were analyzed.");
+            return body.toString();
+        }
+
+        for (RenderedSvgReport report : reports) {
+            body.append("### <code>").append(escapeHtml(report.filename())).append("</code>\n\n");
+            body.append("<details>\n");
+            body.append("<summary>Rendered SVG</summary>\n\n");
+            body.append("```svg\n");
+            body.append(report.svg()).append("\n");
+            body.append("```\n\n");
+            body.append("</details>\n\n");
+        }
+
+        return body.toString();
+    }
+
+    /**
+     * Escapes special HTML characters in a string to prevent rendering issues in GitHub comments.
+     * 
+     * @param text the text to escape
+     * @return the escaped text
+     */
+    private String escapeHtml(String text) {
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+    }
+
+    /**
+     * A record representing a rendered SVG report for a model file.
+     * 
+     * @param filename the name of the model file
+     * @param svg the rendered SVG content
+     */
+    public record RenderedSvgReport(String filename, String svg) {
     }
 
 }
