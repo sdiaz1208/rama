@@ -1,4 +1,4 @@
-package es.unican.istr;
+package es.unican.istr.rama;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
