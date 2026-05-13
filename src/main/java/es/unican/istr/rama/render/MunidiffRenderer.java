@@ -21,14 +21,6 @@ import net.sourceforge.plantuml.SourceStringReader;
 
 public class MunidiffRenderer {
 
-    public record RenderedMunidiff(
-            Munidiff munidiff,
-            String unifiedDiff,
-            String plantuml,
-            String svg
-    ) {
-    }
-
     /**
      * Renders a Comparison into a RenderedMunidiff, which includes unified diff, PlantUML, and SVG representations.
      *

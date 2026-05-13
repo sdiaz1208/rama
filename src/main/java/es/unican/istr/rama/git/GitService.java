@@ -1,6 +1,7 @@
-package es.unican.istr.rama.config;
+package es.unican.istr.rama.git;
 
 import es.unican.istr.rama.comparison.ModelComparisonInput;
+import es.unican.istr.rama.render.ReportComment;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,21 +19,12 @@ public interface GitService {
     List<ModelComparisonInput> getModelFiles(int pullRequestNumber) throws IOException;
 
     /**
-     * Posts or updates a code review request comment containing SVG report renders.
+     * Creates or updates the provider comment used for a RAMA report.
      *
      * @param pullRequestNumber the pull/merge request number to comment on
-     * @param reports the PlantUML reports to publish as rendered SVG images
+     * @param comment the rendered report comment to publish
      * @throws IOException if there is an error communicating with the backing Git provider API
      */
-    void postRenderedSvgReport(int pullRequestNumber, List<PlantUmlReport> reports) throws IOException;
-
-    /**
-     * A record representing a PlantUML report for a model file.
-     *
-     * @param filename the name of the model file
-     * @param plantuml the PlantUML source to encode as an SVG image URL
-     */
-    record PlantUmlReport(String filename, String plantuml) {
-    }
+    void publishComment(int pullRequestNumber, ReportComment comment) throws IOException;
 
 }

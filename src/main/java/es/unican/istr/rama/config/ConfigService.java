@@ -1,14 +1,11 @@
 package es.unican.istr.rama.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConfigService {
 
@@ -29,11 +26,11 @@ public class ConfigService {
      * @throws IOException if there is an error reading the configuration file
      */
     public RamaConfig loadConfig() throws IOException {
-        String workspace = System.getenv(GITHUB_WORKSPACE_ENV);
+        Path workspace = workspacePathFromEnvironment();
 
-        if (workspace != null && !workspace.isBlank()) {
+        if (workspace != null) {
             // Prefer the target repository config checked out by actions/checkout.
-            Path targetRepositoryConfig = Path.of(workspace).resolve(CONFIG_FILENAME);
+            Path targetRepositoryConfig = workspace.resolve(CONFIG_FILENAME);
 
             if (Files.exists(targetRepositoryConfig)) {
                 System.out.println("Using RAMA config from target repository.");
@@ -51,27 +48,24 @@ public class ConfigService {
         }
     }
 
-    // JSON shape of rama.json.
-    public record RamaConfig(
-            @JsonProperty("model_extensions") List<String> modelExtensions,
-            @JsonProperty("metamodel_extensions") List<String> metamodelExtensions,
-            @JsonProperty("metamodels") List<String> metamodels
-    ) {
-        public boolean isModelFile(String filename) {
-            return modelFileExtensions().stream().anyMatch(filename::endsWith);
+    /**
+     * Resolves the workspace where repository-relative configuration paths should be interpreted.
+     *
+     * @return the configured workspace path, or the current working directory when no workspace was configured
+     */
+    public Path workspacePath() {
+        Path workspace = workspacePathFromEnvironment();
+        return workspace == null ? Path.of("") : workspace;
+    }
+
+    private Path workspacePathFromEnvironment() {
+        String workspace = System.getenv(GITHUB_WORKSPACE_ENV);
+
+        if (workspace == null || workspace.isBlank()) {
+            return null;
         }
 
-        public List<String> metamodelPaths() {
-            return metamodels == null ? List.of() : metamodels;
-        }
-
-        // Both model and metamodel files are relevant PR files for RAMA analysis.
-        private List<String> modelFileExtensions() {
-            List<String> extensions = new ArrayList<>();
-            extensions.addAll(modelExtensions == null ? List.of() : modelExtensions);
-            extensions.addAll(metamodelExtensions == null ? List.of() : metamodelExtensions);
-            return extensions;
-        }
+        return Path.of(workspace);
     }
 
 }

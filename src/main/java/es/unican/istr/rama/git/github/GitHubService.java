@@ -1,9 +1,21 @@
-package es.unican.istr.rama.config;
+package es.unican.istr.rama.git.github;
 
-import org.kohsuke.github.*;
+import org.kohsuke.github.GHCommit;
+import org.kohsuke.github.GHCommitPointer;
+import org.kohsuke.github.GHContent;
+import org.kohsuke.github.GHFileNotFoundException;
+import org.kohsuke.github.GHIssue;
+import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHPullRequest;
+import org.kohsuke.github.GHPullRequestFileDetail;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 
 import es.unican.istr.rama.comparison.ModelComparisonInput;
-import es.unican.istr.rama.render.PlantUMLEncoderService;
+import es.unican.istr.rama.config.RamaConfig;
+import es.unican.istr.rama.git.GitService;
+import es.unican.istr.rama.render.ReportComment;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,21 +23,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class GitHubService implements GitService {
+public class GitHubService implements GitService {
 
     // Target repository to analyze, selected by GITHUB_REPOSITORY
     private final GHRepository repository;
 
     // RAMA configuration used to select model and metamodel files from pull requests.
-    private final ConfigService.RamaConfig config;
-
-    // Encodes PlantUML reports as URLs that GitHub can render as SVG images.
-    private final PlantUMLEncoderService plantUMLEncoderService;
+    private final RamaConfig config;
 
     // Values provided by GitHub Actions for authenticating and locating the repository under analysis.
     private static final String GITHUB_TOKEN_ENV = "GITHUB_TOKEN";
     private static final String GITHUB_REPOSITORY_ENV = "GITHUB_REPOSITORY";
-    private static final String COMMENT_MARKER = "<!-- RAMA:SVG-REPORT -->";
 
     /**
      * Private constructor to enforce the use of the factory method for instantiation.
@@ -34,27 +42,25 @@ public final class GitHubService implements GitService {
      */
     private GitHubService(
             GHRepository repository,
-            ConfigService.RamaConfig config,
-            PlantUMLEncoderService plantUMLEncoderService
+            RamaConfig config
     ) {
         this.repository = repository;
         this.config = config;
-        this.plantUMLEncoderService = plantUMLEncoderService;
     }
 
     /**
      * Factory method to create a GitHubService instance using environment variables provided by GitHub Actions.
      *
-     * @param config the loaded RAMA configuration used to select relevant model files
+     * @param config the loaded RAMA configuration used to select relevant model/metamodel files
      * @return a GitHubService instance configured with the repository specified in the environment variables
      * @throws IOException if there is an error communicating with the GitHub API or reading the configuration
      */
-    public static GitHubService fromEnvironment(ConfigService.RamaConfig config) throws IOException {
+    public static GitHubService fromEnvironment(RamaConfig config) throws IOException {
         String token = System.getenv(GITHUB_TOKEN_ENV);
         String repoName = System.getenv(GITHUB_REPOSITORY_ENV);
 
         GitHub github = new GitHubBuilder().withOAuthToken(token).build();
-        return new GitHubService(github.getRepository(repoName), config, new PlantUMLEncoderService());
+        return new GitHubService(github.getRepository(repoName), config);
     }
 
     @Override
@@ -68,7 +74,7 @@ public final class GitHubService implements GitService {
         List<ModelComparisonInput> modelFiles = new ArrayList<>();
 
         for (GHPullRequestFileDetail file : pullRequest.listFiles()) {
-            if (isRelevantModelFile(file, config)) {
+            if (isRelevantFile(file, config)) {
                 modelFiles.add(toModelComparisonInput(file, sourceBranch, targetBranch, baseCommitSha));
             }
         }
@@ -77,18 +83,17 @@ public final class GitHubService implements GitService {
     }
 
     @Override
-    public void postRenderedSvgReport(int pullRequestNumber, List<GitService.PlantUmlReport> reports) throws IOException {
-        String body = buildCommentBody(reports);
+    public void publishComment(int pullRequestNumber, ReportComment comment) throws IOException {
         GHIssue issue = repository.getIssue(pullRequestNumber);
 
-        for (GHIssueComment comment : issue.listComments()) {
-            if (comment.getBody() != null && comment.getBody().contains(COMMENT_MARKER)) {
-                comment.update(body);
+        for (GHIssueComment issueComment : issue.listComments()) {
+            if (issueComment.getBody() != null && issueComment.getBody().contains(comment.marker())) {
+                issueComment.update(comment.body());
                 return;
             }
         }
 
-        issue.comment(body);
+        issue.comment(comment.body());
     }
 
     /**
@@ -117,12 +122,12 @@ public final class GitHubService implements GitService {
      * the RAMA configuration.
      *
      * @param file the GHPullRequestFileDetail representing the file changed in the pull request
-     * @param config the RAMA configuration containing the model file extensions
+     * @param config the RAMA configuration containing the relevant file extensions
      * @return true if the file is relevant for RAMA analysis, false otherwise
      */
-    private boolean isRelevantModelFile(GHPullRequestFileDetail file, ConfigService.RamaConfig config) {
-        return config.isModelFile(file.getFilename())
-                || (file.getPreviousFilename() != null && config.isModelFile(file.getPreviousFilename()));
+    private boolean isRelevantFile(GHPullRequestFileDetail file, RamaConfig config) {
+        return config.isRelevantFile(file.getFilename())
+                || (file.getPreviousFilename() != null && config.isRelevantFile(file.getPreviousFilename()));
     }
 
     /**
@@ -175,48 +180,6 @@ public final class GitHubService implements GitService {
         } catch (GHFileNotFoundException e) {
             return null;
         }
-    }
-
-    /**
-     * Builds the body of a GitHub comment containing rendered SVG images.
-     *
-     * @param reports the list of PlantUML reports to render
-     * @return the body of the GitHub comment as a String
-     */
-    private String buildCommentBody(List<GitService.PlantUmlReport> reports) {
-        StringBuilder body = new StringBuilder();
-        body.append(COMMENT_MARKER).append("\n");
-        body.append("## RAMA Analysis Report").append("\n\n");
-
-        if (reports.isEmpty()) {
-            body.append("No model files were analyzed.");
-            return body.toString();
-        }
-
-        for (GitService.PlantUmlReport report : reports) {
-            String imageUrl = plantUMLEncoderService.generateURL(report.plantuml());
-            body.append("### <code>").append(escapeHtml(report.filename())).append("</code>\n\n");
-            body.append("<details>\n");
-            body.append("<summary>Rendered SVG</summary>\n\n");
-            body.append("<img src=\"").append(imageUrl).append("\" alt=\"RAMA diagram for ");
-            body.append(escapeHtml(report.filename())).append("\" />\n\n");
-            body.append("</details>\n\n");
-        }
-
-        return body.toString();
-    }
-
-    /**
-     * Escapes special HTML characters in a string to prevent rendering issues in GitHub comments.
-     *
-     * @param text the text to escape
-     * @return the escaped text
-     */
-    private String escapeHtml(String text) {
-        return text
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;");
     }
 
 }

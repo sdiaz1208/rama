@@ -17,16 +17,16 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-import es.unican.istr.rama.config.ConfigService;
+import es.unican.istr.rama.config.RamaConfig;
 
-public class SimpleEMFCompare {
+public class EmfModelComparator implements ComparisonService {
 
-    private static final String GITHUB_WORKSPACE_ENV = "GITHUB_WORKSPACE";
+    private final RamaConfig config;
+    private final Path workspacePath;
 
-    private final ConfigService.RamaConfig config;
-
-    public SimpleEMFCompare(ConfigService.RamaConfig config) {
+    public EmfModelComparator(RamaConfig config, Path workspacePath) {
         this.config = config;
+        this.workspacePath = workspacePath == null ? Path.of("") : workspacePath;
     }
 
     /**
@@ -36,6 +36,7 @@ public class SimpleEMFCompare {
      * @return the EMF Compare Comparison result
      * @throws IOException if an I/O error occurs while loading the resources
      */
+    @Override
     public Comparison compare(ModelComparisonInput input) throws IOException {
         Resource.Factory.Registry.INSTANCE
                 .getExtensionToFactoryMap()
@@ -109,12 +110,7 @@ public class SimpleEMFCompare {
             return metamodelPath;
         }
 
-        String workspace = System.getenv(GITHUB_WORKSPACE_ENV);
-        Path basePath = workspace == null || workspace.isBlank()
-                ? Path.of("")
-                : Path.of(workspace);
-
-        return basePath.resolve(metamodelPath).normalize();
+        return workspacePath.resolve(metamodelPath).normalize();
     }
 
     /**
