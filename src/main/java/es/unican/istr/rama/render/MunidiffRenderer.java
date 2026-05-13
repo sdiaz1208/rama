@@ -1,4 +1,4 @@
-package es.unican.istr.rama;
+package es.unican.istr.rama.render;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,7 @@ public class MunidiffRenderer {
 
     /**
      * Renders a Comparison into a RenderedMunidiff, which includes unified diff, PlantUML, and SVG representations.
-     * 
+     *
      * @param comparison the EMF Comparison to be rendered
      * @param ecoreDiff whether the comparison involves Ecore or other metamodels
      * @return a RenderedMunidiff containing the unified diff, PlantUML, and SVG representations
@@ -56,7 +56,7 @@ public class MunidiffRenderer {
 
     /**
      * Renders PlantUML content to SVG format using the PlantUML library.
-     * 
+     *
      * @param plantuml the PlantUML content to be rendered
      * @return the rendered SVG content as a string
      */

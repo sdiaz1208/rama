@@ -1,4 +1,4 @@
-package es.unican.istr.rama;
+package es.unican.istr.rama.comparison;
 
 public record ModelComparisonInput(
         String filename,

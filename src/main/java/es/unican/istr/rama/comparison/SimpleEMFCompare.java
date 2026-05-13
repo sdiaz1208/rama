@@ -1,4 +1,4 @@
-package es.unican.istr.rama;
+package es.unican.istr.rama.comparison;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -17,6 +17,8 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+import es.unican.istr.rama.config.ConfigService;
+
 public class SimpleEMFCompare {
 
     private static final String GITHUB_WORKSPACE_ENV = "GITHUB_WORKSPACE";
@@ -29,7 +31,7 @@ public class SimpleEMFCompare {
 
     /**
      * Compares the source, target, and base contents of a model file using EMF Compare.
-     * 
+     *
      * @param input the input containing the filename and contents for source, target, and base
      * @return the EMF Compare Comparison result
      * @throws IOException if an I/O error occurs while loading the resources
@@ -62,7 +64,7 @@ public class SimpleEMFCompare {
 
     /**
      * Registers the metamodels specified in the configuration with the given ResourceSet.
-     * 
+     *
      * @param resourceSet the ResourceSet with which to register the metamodels
      */
     private void registerMetamodels(ResourceSet resourceSet) {
@@ -82,7 +84,7 @@ public class SimpleEMFCompare {
 
     /**
      * Recursively registers an EPackage and its subpackages with the given ResourceSet.
-     * 
+     *
      * @param resourceSet the ResourceSet with which to register the EPackage
      * @param ePackage the EPackage to register
      */
@@ -96,7 +98,7 @@ public class SimpleEMFCompare {
 
     /**
      * Resolves the path to a metamodel file.
-     * 
+     *
      * @param metamodel the path to the metamodel file
      * @return the resolved Path to the metamodel file
      */
@@ -116,9 +118,9 @@ public class SimpleEMFCompare {
     }
 
     /**
-     * Helper method to load a resource from a string content. If the content is null, an empty 
+     * Helper method to load a resource from a string content. If the content is null, an empty
      * resource will be created.
-     * 
+     *
      * @param resourceSet the resource set to which the resource will be added
      * @param filename the name of the file
      * @param side the side of the comparison (source, target, or base)
@@ -144,9 +146,9 @@ public class SimpleEMFCompare {
     }
 
     /**
-     * Helper method to create a URI for a resource based on the filename and side. This ensures 
+     * Helper method to create a URI for a resource based on the filename and side. This ensures
      * that each resource has a unique URI, which is important for EMF's resource management.
-     * 
+     *
      * @param filename the name of the file
      * @param side the side of the comparison (source, target, or base)
      * @return the URI for the resource

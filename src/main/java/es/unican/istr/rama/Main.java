@@ -5,6 +5,12 @@ import java.util.List;
 
 import org.eclipse.emf.compare.Comparison;
 
+import es.unican.istr.rama.comparison.ModelComparisonInput;
+import es.unican.istr.rama.comparison.SimpleEMFCompare;
+import es.unican.istr.rama.config.ConfigService;
+import es.unican.istr.rama.config.GitHubService;
+import es.unican.istr.rama.render.MunidiffRenderer;
+
 public class Main {
     public static void main(String[] args) throws Exception {
         // The GitHub Action passes the pull request number as the first argument.
@@ -59,7 +65,7 @@ public class Main {
 
     /**
      * Helper method to safely get the length of content, handling null values.
-     * 
+     *
      * @param content the content whose length is to be determined
      * @return the length of the content, or "<missing>" if the content is null
      */

@@ -1,4 +1,4 @@
-package es.unican.istr.rama;
+package es.unican.istr.rama.render;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;

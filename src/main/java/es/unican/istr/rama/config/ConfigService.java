@@ -1,4 +1,4 @@
-package es.unican.istr.rama;
+package es.unican.istr.rama.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

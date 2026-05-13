@@ -1,6 +1,9 @@
-package es.unican.istr.rama;
+package es.unican.istr.rama.config;
 
 import org.kohsuke.github.*;
+
+import es.unican.istr.rama.comparison.ModelComparisonInput;
+import es.unican.istr.rama.render.PlantUMLEncoderService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +29,7 @@ public class GitHubService {
 
     /**
      * Private constructor to enforce the use of the factory method for instantiation.
-     * 
+     *
      * @param repository the GHRepository instance representing the target repository to analyze
      */
     private GitHubService(
@@ -41,7 +44,7 @@ public class GitHubService {
 
     /**
      * Factory method to create a GitHubService instance using environment variables provided by GitHub Actions.
-     * 
+     *
      * @param config the loaded RAMA configuration used to select relevant model files
      * @return a GitHubService instance configured with the repository specified in the environment variables
      * @throws IOException if there is an error communicating with the GitHub API or reading the configuration
@@ -57,7 +60,7 @@ public class GitHubService {
     /**
      * Fetches the model/metamodel files affected in the specified pull request and returns the
      * contents of the source, target, and merge-base versions.
-     * 
+     *
      * @param prNumber the number of the pull request to analyze
      * @return a list of model comparison inputs representing the model files in a pull request
      * @throws IOException if there is an error communicating with the GitHub API
@@ -103,7 +106,7 @@ public class GitHubService {
 
     /**
      * Finds the merge base commit SHA for the source and target branches of a pull request.
-     * 
+     *
      * @param sourceBranch the source branch of the pull request
      * @param targetBranch the target branch of the pull request
      * @return the SHA of the merge base commit
@@ -123,9 +126,9 @@ public class GitHubService {
     }
 
     /**
-     * Determines if a given pull request file is relevant for RAMA analysis based on its filename and 
-     * the RAMA configuration. 
-     * 
+     * Determines if a given pull request file is relevant for RAMA analysis based on its filename and
+     * the RAMA configuration.
+     *
      * @param file the GHPullRequestFileDetail representing the file changed in the pull request
      * @param config the RAMA configuration containing the model file extensions
      * @return true if the file is relevant for RAMA analysis, false otherwise
@@ -138,7 +141,7 @@ public class GitHubService {
     /**
      * Converts a pull request file detail into a ModelComparisonInput by fetching the contents of the file
      * from the source branch, target branch, and merge base commit.
-     * 
+     *
      * @param file the GHPullRequestFileDetail representing the file changed in the pull request
      * @param sourceBranch the source branch of the pull request
      * @param targetBranch the target branch of the pull request
@@ -163,9 +166,9 @@ public class GitHubService {
     }
 
     /**
-     * Fetches the content of a file from a specific commit in the repository. 
+     * Fetches the content of a file from a specific commit in the repository.
      * If the file does not exist in that commit, returns null.
-     * 
+     *
      * @param repository the GHRepository object representing the repository
      * @param repositoryPath the path of the file in the repository
      * @param commitSha the SHA of the commit from which to fetch the file
@@ -189,7 +192,7 @@ public class GitHubService {
 
     /**
      * Builds the body of a GitHub comment containing rendered SVG images.
-     * 
+     *
      * @param reports the list of PlantUML reports to render
      * @return the body of the GitHub comment as a String
      */
@@ -218,7 +221,7 @@ public class GitHubService {
 
     /**
      * Escapes special HTML characters in a string to prevent rendering issues in GitHub comments.
-     * 
+     *
      * @param text the text to escape
      * @return the escaped text
      */
@@ -231,7 +234,7 @@ public class GitHubService {
 
     /**
      * A record representing a PlantUML report for a model file.
-     * 
+     *
      * @param filename the name of the model file
      * @param plantuml the PlantUML source to encode as an SVG image URL
      */
