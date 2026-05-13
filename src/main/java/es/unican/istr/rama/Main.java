@@ -8,6 +8,7 @@ import org.eclipse.emf.compare.Comparison;
 import es.unican.istr.rama.comparison.ModelComparisonInput;
 import es.unican.istr.rama.comparison.SimpleEMFCompare;
 import es.unican.istr.rama.config.ConfigService;
+import es.unican.istr.rama.config.GitService;
 import es.unican.istr.rama.config.GitHubService;
 import es.unican.istr.rama.render.MunidiffRenderer;
 
@@ -21,16 +22,16 @@ public class Main {
         // metamodel handling, and comparison behavior share the same settings.
         ConfigService.RamaConfig config = new ConfigService().loadConfig();
 
-        // Reuse one GitHub service for every GitHub API operation in this run:
-        // reading PR files, fetching file contents, and posting the PR comment.
-        GitHubService gitHubService = GitHubService.fromEnvironment(config);
-        List<ModelComparisonInput> files = gitHubService.getModelFiles(prNumber);
+        // Main uses the generic Git service contract while the selected provider
+        // implementation handles API-specific details behind that boundary.
+        GitService gitService = GitHubService.fromEnvironment(config);
+        List<ModelComparisonInput> files = gitService.getModelFiles(prNumber);
 
-        // Prepare the local analysis and rendering services. GitHubService has already
+        // Prepare the local analysis and rendering services. GitService has already
         // converted remote PR files into ModelComparisonInput objects for comparison.
         SimpleEMFCompare emfCompare = new SimpleEMFCompare(config);
         MunidiffRenderer munidiffRenderer = new MunidiffRenderer();
-        List<GitHubService.PlantUmlReport> plantUmlReports = new ArrayList<>();
+        List<GitService.PlantUmlReport> plantUmlReports = new ArrayList<>();
 
         // Analyze each relevant model file and keep lightweight console output for
         // GitHub Actions logs. The PlantUML report is saved for the PR comment.
@@ -53,14 +54,14 @@ public class Main {
                     .anyMatch(extension -> file.filename().endsWith(extension));
             MunidiffRenderer.RenderedMunidiff rendered = munidiffRenderer.render(comparison, ecoreDiff);
 
-            // Store the PlantUML source per file so GitHubService can encode it
+            // Store the PlantUML source per file so GitService can publish it
             // as a renderable SVG image in one PR comment update.
-            plantUmlReports.add(new GitHubService.PlantUmlReport(file.filename(), rendered.plantuml()));
+            plantUmlReports.add(new GitService.PlantUmlReport(file.filename(), rendered.plantuml()));
         }
 
         // Publish the full analysis result back to the pull request. Existing RAMA
         // comments are updated in place so repeated workflow runs do not duplicate them.
-        gitHubService.postRenderedSvgReport(prNumber, plantUmlReports);
+        gitService.postRenderedSvgReport(prNumber, plantUmlReports);
     }
 
     /**

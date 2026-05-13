@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GitHubService {
+public final class GitHubService implements GitService {
 
     // Target repository to analyze, selected by GITHUB_REPOSITORY
     private final GHRepository repository;
@@ -57,17 +57,10 @@ public class GitHubService {
         return new GitHubService(github.getRepository(repoName), config, new PlantUMLEncoderService());
     }
 
-    /**
-     * Fetches the model/metamodel files affected in the specified pull request and returns the
-     * contents of the source, target, and merge-base versions.
-     *
-     * @param prNumber the number of the pull request to analyze
-     * @return a list of model comparison inputs representing the model files in a pull request
-     * @throws IOException if there is an error communicating with the GitHub API
-     */
-    public List<ModelComparisonInput> getModelFiles(int prNumber) throws IOException {
+    @Override
+    public List<ModelComparisonInput> getModelFiles(int pullRequestNumber) throws IOException {
         // Fetch the pull request and its source and target branches.
-        GHPullRequest pullRequest = repository.getPullRequest(prNumber);
+        GHPullRequest pullRequest = repository.getPullRequest(pullRequestNumber);
         GHCommitPointer sourceBranch = pullRequest.getHead();
         GHCommitPointer targetBranch = pullRequest.getBase();
         String baseCommitSha = findMergeBaseCommitSha(sourceBranch, targetBranch);
@@ -83,16 +76,10 @@ public class GitHubService {
         return modelFiles;
     }
 
-    /**
-     * Posts or updates a pull request comment containing SVG report renders.
-     *
-     * @param prNumber the pull request number to comment on
-     * @param reports the PlantUML reports to publish as rendered SVG images
-     * @throws IOException if there is an error communicating with the GitHub API
-     */
-    public void postRenderedSvgReport(int prNumber, List<PlantUmlReport> reports) throws IOException {
+    @Override
+    public void postRenderedSvgReport(int pullRequestNumber, List<GitService.PlantUmlReport> reports) throws IOException {
         String body = buildCommentBody(reports);
-        GHIssue issue = repository.getIssue(prNumber);
+        GHIssue issue = repository.getIssue(pullRequestNumber);
 
         for (GHIssueComment comment : issue.listComments()) {
             if (comment.getBody() != null && comment.getBody().contains(COMMENT_MARKER)) {
@@ -196,7 +183,7 @@ public class GitHubService {
      * @param reports the list of PlantUML reports to render
      * @return the body of the GitHub comment as a String
      */
-    private String buildCommentBody(List<PlantUmlReport> reports) {
+    private String buildCommentBody(List<GitService.PlantUmlReport> reports) {
         StringBuilder body = new StringBuilder();
         body.append(COMMENT_MARKER).append("\n");
         body.append("## RAMA Analysis Report").append("\n\n");
@@ -206,7 +193,7 @@ public class GitHubService {
             return body.toString();
         }
 
-        for (PlantUmlReport report : reports) {
+        for (GitService.PlantUmlReport report : reports) {
             String imageUrl = plantUMLEncoderService.generateURL(report.plantuml());
             body.append("### <code>").append(escapeHtml(report.filename())).append("</code>\n\n");
             body.append("<details>\n");
@@ -230,15 +217,6 @@ public class GitHubService {
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
-    }
-
-    /**
-     * A record representing a PlantUML report for a model file.
-     *
-     * @param filename the name of the model file
-     * @param plantuml the PlantUML source to encode as an SVG image URL
-     */
-    public record PlantUmlReport(String filename, String plantuml) {
     }
 
 }
