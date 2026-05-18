@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.epsilon.modiff.emfcompare.munidiff.transformations.EmfCompare2Munidiff;
-import org.eclipse.epsilon.modiff.matcher.EcoreMatcher;
 import org.eclipse.epsilon.modiff.matcher.IdOrNameMatcher;
 import org.eclipse.epsilon.modiff.matcher.Matcher;
 import org.eclipse.epsilon.modiff.munidiff.Munidiff;
@@ -29,7 +28,7 @@ public class MunidiffRenderer {
      * @return a RenderedMunidiff containing the unified diff, PlantUML, and SVG representations
      */
     public RenderedMunidiff render(Comparison comparison, boolean ecoreDiff) {
-        Matcher matcher = ecoreDiff ? new EcoreMatcher() : new IdOrNameMatcher();
+        Matcher matcher = ecoreDiff ? new ResourceSafeEcoreMatcher() : new IdOrNameMatcher();
         LabelProvider labels = new MatcherBasedLabelProvider(matcher);
 
         Munidiff munidiff = new EmfCompare2Munidiff(matcher).transform(comparison);
