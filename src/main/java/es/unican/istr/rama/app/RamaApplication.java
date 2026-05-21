@@ -46,25 +46,66 @@ public class RamaApplication {
      * @throws IOException
      */
     public void run(int pullRequestNumber) throws IOException {
-        List<ModelComparisonInput> files = gitService.getModelFiles(pullRequestNumber);
+        List<ModelComparisonInput> files;
+        try {
+            files = gitService.getModelFiles(pullRequestNumber);
+        }
+        catch (Exception ex) {
+            System.err.println("Could not fetch affected model files.");
+            ex.printStackTrace(System.err);
+
+            ReportComment comment = reportCommentRenderer.renderFailure(
+                    diagnostic("Could not fetch affected model files.", ex)
+            );
+            gitService.publishComment(pullRequestNumber, comment);
+            return;
+        }
+
         List<FileReport> fileReports = new ArrayList<>();
 
         System.out.println("Affected model files:");
         for (ModelComparisonInput file : files) {
-            Comparison comparison = modelComparator.compare(file);
-
             System.out.println("--------------------------------");
             System.out.println("Filename: " + file.filename());
             System.out.println("Source content length: " + contentLength(file.sourceContent()));
             System.out.println("Target content length: " + contentLength(file.targetContent()));
             System.out.println("Base content length: " + contentLength(file.baseContent()));
-            System.out.println("Differences: " + comparison.getDifferences().size());
 
-            RenderedMunidiff rendered = munidiffRenderer.render(comparison, config.isMetamodelFile(file.filename()));
-            fileReports.add(new FileReport(file.filename(), rendered.plantuml()));
+            try {
+                Comparison comparison = modelComparator.compare(file);
+
+                System.out.println("Differences: " + comparison.getDifferences().size());
+
+                RenderedMunidiff rendered = munidiffRenderer.render(
+                        comparison,
+                        config.isMetamodelFile(file.filename())
+                );
+                fileReports.add(new FileReport(file.filename(), rendered.plantuml()));
+            }
+            catch (Exception ex) {
+                System.err.println("Could not analyze model file: " + file.filename());
+                ex.printStackTrace(System.err);
+
+                fileReports.add(FileReport.failure(
+                        file.filename(),
+                        diagnostic("Could not analyze this file.", ex)
+                ));
+            }
         }
 
-        ReportComment comment = reportCommentRenderer.render(fileReports);
+        ReportComment comment;
+        try {
+            comment = reportCommentRenderer.render(fileReports);
+        }
+        catch (Exception ex) {
+            System.err.println("Could not render RAMA report comment.");
+            ex.printStackTrace(System.err);
+
+            comment = reportCommentRenderer.renderFailure(
+                    diagnostic("Could not render the RAMA report comment.", ex)
+            );
+        }
+
         gitService.publishComment(pullRequestNumber, comment);
     }
 
@@ -79,5 +120,30 @@ public class RamaApplication {
             return "<missing>";
         }
         return String.valueOf(content.length());
+    }
+
+    private String diagnostic(String context, Exception ex) {
+        StringBuilder diagnostic = new StringBuilder(context);
+        diagnostic.append(System.lineSeparator());
+        diagnostic.append(ex.getClass().getName());
+
+        if (ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            diagnostic.append(": ").append(ex.getMessage());
+        }
+
+        Throwable cause = ex.getCause();
+        if (cause != null && cause != ex) {
+            diagnostic.append(System.lineSeparator());
+            diagnostic.append("Caused by: ").append(cause.getClass().getName());
+
+            if (cause.getMessage() != null && !cause.getMessage().isBlank()) {
+                diagnostic.append(": ").append(cause.getMessage());
+            }
+        }
+
+        diagnostic.append(System.lineSeparator());
+        diagnostic.append("See the GitHub Actions logs for the full stack trace.");
+
+        return diagnostic.toString();
     }
 }
