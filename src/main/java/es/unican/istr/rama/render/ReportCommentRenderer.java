@@ -30,12 +30,14 @@ public class ReportCommentRenderer {
         for (FileReport report : reports) {
             body.append("### <code>").append(escapeHtml(report.filename())).append("</code>\n\n");
 
-            if (report.hasPlantuml()) {
-                String imageUrl = plantUMLEncoderService.generateURL(report.plantuml());
+            if (report.hasConflictReport()) {
+                appendConflictReport(body, report);
+            }
+            else if (report.hasPlantuml()) {
                 body.append("<details>\n");
                 body.append("<summary>Rendered SVG</summary>\n\n");
-                body.append("<img src=\"").append(imageUrl).append("\" alt=\"RAMA diagram for ");
-                body.append(escapeHtml(report.filename())).append("\" />\n\n");
+                appendPlantumlImage(body, report.plantuml(), "RAMA diagram for " + report.filename());
+                body.append("\n");
                 body.append("</details>\n\n");
             }
             else {
@@ -46,6 +48,66 @@ public class ReportCommentRenderer {
         }
 
         return new ReportComment(COMMENT_MARKER, body.toString());
+    }
+
+    private void appendConflictReport(StringBuilder body, FileReport report) {
+        ConflictReport conflictReport = report.conflictReport();
+
+        body.append("RAMA detected ");
+        body.append(conflictReport.conflictCount());
+        body.append(" EMF Compare conflict group");
+        if (conflictReport.conflictCount() != 1) {
+            body.append("s");
+        }
+        body.append(" (");
+        body.append(conflictReport.realConflictCount()).append(" real, ");
+        body.append(conflictReport.pseudoConflictCount()).append(" pseudo");
+        body.append(").\n\n");
+
+        body.append("<details open>\n");
+        body.append("<summary>Branch changes against merge-base</summary>\n\n");
+        body.append("<table>\n");
+        body.append("<thead>\n");
+        body.append("<tr>");
+        body.append("<th>Left/source changes vs merge-base</th>");
+        body.append("<th>Right/target changes vs merge-base</th>");
+        body.append("</tr>\n");
+        body.append("</thead>\n");
+        body.append("<tbody>\n");
+        body.append("<tr>\n");
+        body.append("<td valign=\"top\">");
+        appendConflictImageOrFallback(
+                body,
+                conflictReport.leftPlantuml(),
+                "RAMA left/source changes against merge-base for " + report.filename()
+        );
+        body.append("</td>\n");
+        body.append("<td valign=\"top\">");
+        appendConflictImageOrFallback(
+                body,
+                conflictReport.rightPlantuml(),
+                "RAMA right/target changes against merge-base for " + report.filename()
+        );
+        body.append("</td>\n");
+        body.append("</tr>\n");
+        body.append("</tbody>\n");
+        body.append("</table>\n\n");
+        body.append("</details>\n\n");
+    }
+
+    private void appendConflictImageOrFallback(StringBuilder body, String plantuml, String altText) {
+        if (plantuml == null || plantuml.isBlank()) {
+            body.append("No renderable branch changes.");
+            return;
+        }
+
+        appendPlantumlImage(body, plantuml, altText);
+    }
+
+    private void appendPlantumlImage(StringBuilder body, String plantuml, String altText) {
+        String imageUrl = plantUMLEncoderService.generateURL(plantuml);
+        body.append("<img src=\"").append(escapeHtml(imageUrl)).append("\" alt=\"");
+        body.append(escapeHtml(altText)).append("\" />\n\n");
     }
 
     /**

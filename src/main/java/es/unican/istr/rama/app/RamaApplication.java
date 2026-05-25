@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.ConflictKind;
 
 import es.unican.istr.rama.comparison.ComparisonService;
 import es.unican.istr.rama.comparison.ModelComparisonInput;
 import es.unican.istr.rama.config.RamaConfig;
 import es.unican.istr.rama.git.GitService;
+import es.unican.istr.rama.render.ConflictReport;
 import es.unican.istr.rama.render.FileReport;
 import es.unican.istr.rama.render.MunidiffRenderer;
 import es.unican.istr.rama.render.RenderedMunidiff;
@@ -75,12 +77,15 @@ public class RamaApplication {
                 Comparison comparison = modelComparator.compare(file);
 
                 System.out.println("Differences: " + comparison.getDifferences().size());
+                System.out.println("Conflicts: " + comparison.getConflicts().size());
 
-                RenderedMunidiff rendered = munidiffRenderer.render(
-                        comparison,
-                        config.isMetamodelFile(file.filename())
-                );
-                fileReports.add(new FileReport(file.filename(), rendered.plantuml()));
+                if (comparison.getConflicts().isEmpty()) {
+                    RenderedMunidiff rendered = render(comparison, file);
+                    fileReports.add(new FileReport(file.filename(), rendered.plantuml()));
+                }
+                else {
+                    fileReports.add(FileReport.conflict(file.filename(), renderConflictReport(comparison, file)));
+                }
             }
             catch (Exception ex) {
                 System.err.println("Could not analyze model file: " + file.filename());
@@ -120,6 +125,47 @@ public class RamaApplication {
             return "<missing>";
         }
         return String.valueOf(content.length());
+    }
+
+    private ConflictReport renderConflictReport(Comparison comparison, ModelComparisonInput file) throws IOException {
+        RenderedMunidiff leftChanges = renderChangesAgainstBase(file, file.sourceContent());
+        RenderedMunidiff rightChanges = renderChangesAgainstBase(file, file.targetContent());
+
+        return new ConflictReport(
+                comparison.getConflicts().size(),
+                countConflicts(comparison, ConflictKind.REAL),
+                countConflicts(comparison, ConflictKind.PSEUDO),
+                leftChanges.plantuml(),
+                rightChanges.plantuml()
+        );
+    }
+
+    private RenderedMunidiff renderChangesAgainstBase(
+            ModelComparisonInput original,
+            String branchContent
+    ) throws IOException {
+        ModelComparisonInput branchAgainstBase = new ModelComparisonInput(
+                original.filename(),
+                branchContent,
+                original.baseContent(),
+                null
+        );
+
+        return render(modelComparator.compare(branchAgainstBase), original);
+    }
+
+    private RenderedMunidiff render(Comparison comparison, ModelComparisonInput file) {
+        return munidiffRenderer.render(
+                comparison,
+                config.isMetamodelFile(file.filename())
+        );
+    }
+
+    private int countConflicts(Comparison comparison, ConflictKind kind) {
+        return (int) comparison.getConflicts()
+                .stream()
+                .filter(conflict -> conflict.getKind() == kind)
+                .count();
     }
 
     private String diagnostic(String context, Exception ex) {
