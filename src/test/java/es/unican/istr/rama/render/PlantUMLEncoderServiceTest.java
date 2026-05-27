@@ -45,6 +45,22 @@ class PlantUMLEncoderServiceTest {
     }
 
     @Test
+    void generateUrlRejectsNullServerUrl() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.generateURL("@startuml\nAlice -> Bob: hello\n@enduml", null)
+        );
+    }
+
+    @Test
+    void generateUrlRejectsBlankServerUrl() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.generateURL("@startuml\nAlice -> Bob: hello\n@enduml", " \n\t ")
+        );
+    }
+
+    @Test
     void generateUrlAddsSlashWhenServerUrlHasNoTrailingSlash() {
         String umlSource = "@startuml\nAlice -> Bob: hello\n@enduml";
 

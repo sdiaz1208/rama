@@ -12,10 +12,18 @@ public record RamaConfig(
         @JsonProperty("metamodels") List<String> metamodels
 ) {
     public boolean isRelevantFile(String filename) {
+        if (filename == null) {
+            return false;
+        }
+
         return relevantFileExtensions().stream().anyMatch(filename::endsWith);
     }
 
     public boolean isMetamodelFile(String filename) {
+        if (filename == null) {
+            return false;
+        }
+
         return metamodelFileExtensions().stream().anyMatch(filename::endsWith);
     }
 

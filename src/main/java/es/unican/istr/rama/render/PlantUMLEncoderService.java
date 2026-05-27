@@ -41,6 +41,10 @@ public class PlantUMLEncoderService {
 	 * @return Full URL to render the diagram on the specified PlantUML server
 	 */
 	public String generateURL(String umlSource, String serverUrl) {
+		if (serverUrl == null || serverUrl.isBlank()) {
+			throw new IllegalArgumentException("PlantUML server URL cannot be null or empty");
+		}
+
 		String base = serverUrl.endsWith("/") ? serverUrl : serverUrl + "/";
 		return base + encode(umlSource);
 	}

@@ -32,11 +32,25 @@ class RamaConfigTest {
     }
 
     @Test
+    void nullFilenameIsNotRelevantFile() {
+        RamaConfig config = new RamaConfig(List.of(".model"), List.of(".ecore"), List.of());
+
+        assertFalse(config.isRelevantFile(null));
+    }
+
+    @Test
     void onlyMetamodelExtensionsAreMetamodelFiles() {
         RamaConfig config = new RamaConfig(List.of(".model"), List.of(".ecore"), List.of());
 
         assertTrue(config.isMetamodelFile("metamodels/example.ecore"));
         assertFalse(config.isMetamodelFile("models/example.model"));
+    }
+
+    @Test
+    void nullFilenameIsNotMetamodelFile() {
+        RamaConfig config = new RamaConfig(List.of(".model"), List.of(".ecore"), List.of());
+
+        assertFalse(config.isMetamodelFile(null));
     }
 
     @Test
