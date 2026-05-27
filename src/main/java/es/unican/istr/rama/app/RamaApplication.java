@@ -1,0 +1,195 @@
+package es.unican.istr.rama.app;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.ConflictKind;
+
+import es.unican.istr.rama.comparison.ComparisonService;
+import es.unican.istr.rama.comparison.ModelComparisonInput;
+import es.unican.istr.rama.config.RamaConfig;
+import es.unican.istr.rama.git.GitService;
+import es.unican.istr.rama.render.ConflictReport;
+import es.unican.istr.rama.render.FileReport;
+import es.unican.istr.rama.render.MunidiffRenderer;
+import es.unican.istr.rama.render.RenderedMunidiff;
+import es.unican.istr.rama.render.ReportComment;
+import es.unican.istr.rama.render.ReportCommentRenderer;
+
+public class RamaApplication {
+
+    private final RamaConfig config;
+    private final GitService gitService;
+    private final ComparisonService modelComparator;
+    private final MunidiffRenderer munidiffRenderer;
+    private final ReportCommentRenderer reportCommentRenderer;
+
+    public RamaApplication(
+            RamaConfig config,
+            GitService gitService,
+            ComparisonService modelComparator,
+            MunidiffRenderer munidiffRenderer,
+            ReportCommentRenderer reportCommentRenderer
+    ) {
+        this.config = config;
+        this.gitService = gitService;
+        this.modelComparator = modelComparator;
+        this.munidiffRenderer = munidiffRenderer;
+        this.reportCommentRenderer = reportCommentRenderer;
+    }
+
+    /**
+     * Main method to run the application for a given change request number. It retrieves the affected model files,
+     * compares them, renders the differences, and publishes a comment with the results.
+     *
+     * @param pullRequestNumber
+     * @throws IOException
+     */
+    public void run(int pullRequestNumber) throws IOException {
+        List<ModelComparisonInput> files;
+        try {
+            files = gitService.getModelFiles(pullRequestNumber);
+        }
+        catch (Exception ex) {
+            System.err.println("Could not fetch affected model files.");
+            ex.printStackTrace(System.err);
+
+            ReportComment comment = reportCommentRenderer.renderFailure(
+                    diagnostic("Could not fetch affected model files.", ex)
+            );
+            gitService.publishComment(pullRequestNumber, comment);
+            return;
+        }
+
+        List<FileReport> fileReports = new ArrayList<>();
+
+        System.out.println("Affected model files:");
+        for (ModelComparisonInput file : files) {
+            System.out.println("--------------------------------");
+            System.out.println("Filename: " + file.filename());
+            System.out.println("Source content length: " + contentLength(file.sourceContent()));
+            System.out.println("Target content length: " + contentLength(file.targetContent()));
+            System.out.println("Base content length: " + contentLength(file.baseContent()));
+
+            try {
+                Comparison comparison = modelComparator.compare(file);
+
+                System.out.println("Differences: " + comparison.getDifferences().size());
+                System.out.println("Conflicts: " + comparison.getConflicts().size());
+
+                if (comparison.getConflicts().isEmpty()) {
+                    RenderedMunidiff rendered = render(comparison, file);
+                    fileReports.add(new FileReport(file.filename(), rendered.plantuml()));
+                }
+                else {
+                    fileReports.add(FileReport.conflict(file.filename(), renderConflictReport(comparison, file)));
+                }
+            }
+            catch (Exception ex) {
+                System.err.println("Could not analyze model file: " + file.filename());
+                ex.printStackTrace(System.err);
+
+                fileReports.add(FileReport.failure(
+                        file.filename(),
+                        diagnostic("Could not analyze this file.", ex)
+                ));
+            }
+        }
+
+        ReportComment comment;
+        try {
+            comment = reportCommentRenderer.render(fileReports);
+        }
+        catch (Exception ex) {
+            System.err.println("Could not render RAMA report comment.");
+            ex.printStackTrace(System.err);
+
+            comment = reportCommentRenderer.renderFailure(
+                    diagnostic("Could not render the RAMA report comment.", ex)
+            );
+        }
+
+        gitService.publishComment(pullRequestNumber, comment);
+    }
+
+    /**
+     * Helper method to safely get the length of content, handling null values.
+     *
+     * @param content the content whose length is to be determined
+     * @return the length of the content, or "<missing>" if the content is null
+     */
+    private String contentLength(String content) {
+        if (content == null) {
+            return "<missing>";
+        }
+        return String.valueOf(content.length());
+    }
+
+    private ConflictReport renderConflictReport(Comparison comparison, ModelComparisonInput file) throws IOException {
+        RenderedMunidiff leftChanges = renderChangesAgainstBase(file, file.sourceContent());
+        RenderedMunidiff rightChanges = renderChangesAgainstBase(file, file.targetContent());
+
+        return new ConflictReport(
+                comparison.getConflicts().size(),
+                countConflicts(comparison, ConflictKind.REAL),
+                countConflicts(comparison, ConflictKind.PSEUDO),
+                leftChanges.plantuml(),
+                rightChanges.plantuml()
+        );
+    }
+
+    private RenderedMunidiff renderChangesAgainstBase(
+            ModelComparisonInput original,
+            String branchContent
+    ) throws IOException {
+        ModelComparisonInput branchAgainstBase = new ModelComparisonInput(
+                original.filename(),
+                branchContent,
+                original.baseContent(),
+                null
+        );
+
+        return render(modelComparator.compare(branchAgainstBase), original);
+    }
+
+    private RenderedMunidiff render(Comparison comparison, ModelComparisonInput file) {
+        return munidiffRenderer.render(
+                comparison,
+                config.isMetamodelFile(file.filename())
+        );
+    }
+
+    private int countConflicts(Comparison comparison, ConflictKind kind) {
+        return (int) comparison.getConflicts()
+                .stream()
+                .filter(conflict -> conflict.getKind() == kind)
+                .count();
+    }
+
+    private String diagnostic(String context, Exception ex) {
+        StringBuilder diagnostic = new StringBuilder(context);
+        diagnostic.append(System.lineSeparator());
+        diagnostic.append(ex.getClass().getName());
+
+        if (ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            diagnostic.append(": ").append(ex.getMessage());
+        }
+
+        Throwable cause = ex.getCause();
+        if (cause != null && cause != ex) {
+            diagnostic.append(System.lineSeparator());
+            diagnostic.append("Caused by: ").append(cause.getClass().getName());
+
+            if (cause.getMessage() != null && !cause.getMessage().isBlank()) {
+                diagnostic.append(": ").append(cause.getMessage());
+            }
+        }
+
+        diagnostic.append(System.lineSeparator());
+        diagnostic.append("See the GitHub Actions logs for the full stack trace.");
+
+        return diagnostic.toString();
+    }
+}

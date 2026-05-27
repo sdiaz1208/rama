@@ -6,7 +6,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 
 - **GitHub API:** a pull request exposes `pull_request.head` (the source branch or head branch containing the proposed changes) and `pull_request.base` (the target branch into which the PR is merged). The common ancestor commit of those tips is available via the merge base endpoint (`GET /repos/:owner/:repo/merges/:base...:head`).
 - **This document:** whenever we write *source branch* we mean the GitHub head ref and *target branch* means the GitHub base ref; *merge base* maps to the common ancestor commit from the `merges` API and is where we evaluate the origin-relative cases in section 2.
-- **EMF Compare:** we usually align the GitHub roles with EMF Compare sides as follows: the target branch tip becomes the *left* or *reference* model, the source branch tip becomes the *right* or *working* model, and the merge base computation provides the *origin* or *ancestor* model that represents their shared history. Use this mapping when interpreting the case tables in terms of EMF comparison inputs (e.g., "target branch" entries refer to "left" in EMF Compare).
+- **EMF Compare:** RAMA aligns the GitHub roles with EMF Compare sides as follows: the source branch tip becomes the *left* or *to/new* model, the target branch tip becomes the *right* or *from/old* model, and the merge base computation provides the *origin* or *ancestor* model that represents their shared history. This orientation matches Munidiff's add/remove direction when rendering reports.
 
 ## Behavior
 
