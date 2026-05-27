@@ -1,0 +1,68 @@
+package es.unican.istr.rama.render;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+class ReportCommentRendererTest {
+
+    private final ReportCommentRenderer renderer = new ReportCommentRenderer(new StubPlantUMLEncoderService());
+
+    @Test
+    void emptyReportListProducesMarkerAndEmptyMessage() {
+        ReportComment comment = renderer.render(List.of());
+
+        assertEquals("<!-- RAMA:SVG-REPORT -->", comment.marker());
+        assertTrue(comment.body().contains("<!-- RAMA:SVG-REPORT -->"));
+        assertTrue(comment.body().contains("No model files were analyzed."));
+    }
+
+    @Test
+    void onePlantumlReportProducesFileSectionDetailsImageAndGeneratedUrl() {
+        ReportComment comment = renderer.render(List.of(new FileReport("models/example.model", "plantuml-source")));
+
+        assertTrue(comment.body().contains("### <code>models/example.model</code>"));
+        assertTrue(comment.body().contains("<details>"));
+        assertTrue(comment.body().contains("<summary>Rendered SVG</summary>"));
+        assertTrue(comment.body().contains("<img src=\"https://plantuml.test/plantuml-source\""));
+    }
+
+    @Test
+    void multipleReportsPreserveOrder() {
+        ReportComment comment = renderer.render(List.of(
+                new FileReport("models/first.model", "first"),
+                new FileReport("models/second.model", "second")
+        ));
+
+        assertTrue(comment.body().indexOf("models/first.model") < comment.body().indexOf("models/second.model"));
+    }
+
+    @Test
+    void filenamesAreEscapedInSectionAndAltText() {
+        ReportComment comment = renderer.render(List.of(new FileReport("models/a<&>\".model", "plantuml-source")));
+
+        assertTrue(comment.body().contains("models/a&lt;&amp;&gt;&quot;.model"));
+        assertTrue(comment.body().contains("alt=\"RAMA diagram for models/a&lt;&amp;&gt;&quot;.model\""));
+    }
+
+    @Test
+    void failureReportIncludesEscapedDiagnostic() {
+        ReportComment comment = renderer.render(List.of(FileReport.failure(
+                "models/broken.model",
+                "Could not load <bad>&\"model\""
+        )));
+
+        assertTrue(comment.body().contains("RAMA could not analyze this file."));
+        assertTrue(comment.body().contains("Could not load &lt;bad&gt;&amp;&quot;model&quot;"));
+    }
+
+    private static class StubPlantUMLEncoderService extends PlantUMLEncoderService {
+        @Override
+        public String generateURL(String umlSource) {
+            return "https://plantuml.test/" + umlSource;
+        }
+    }
+}
