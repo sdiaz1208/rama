@@ -19,7 +19,7 @@ public interface GitService {
     List<ModelComparisonInput> getModelFiles(int pullRequestNumber) throws IOException;
 
     /**
-     * Creates or updates the provider comment used for a RAMA report.
+     * Creates a new provider comment used for a RAMA report.
      *
      * @param pullRequestNumber the pull/merge request number to comment on
      * @param comment the rendered report comment to publish

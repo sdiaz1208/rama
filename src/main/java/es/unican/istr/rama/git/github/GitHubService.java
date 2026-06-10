@@ -5,7 +5,6 @@ import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssue;
-import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -85,14 +84,6 @@ public class GitHubService implements GitService {
     @Override
     public void publishComment(int pullRequestNumber, ReportComment comment) throws IOException {
         GHIssue issue = repository.getIssue(pullRequestNumber);
-
-        for (GHIssueComment issueComment : issue.listComments()) {
-            if (issueComment.getBody() != null && issueComment.getBody().contains(comment.marker())) {
-                issueComment.update(comment.body());
-                return;
-            }
-        }
-
         issue.comment(comment.body());
     }
 
