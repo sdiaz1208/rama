@@ -21,13 +21,19 @@ class ReportCommentRendererTest {
     }
 
     @Test
-    void onePlantumlReportProducesFileSectionDetailsImageAndGeneratedUrl() {
-        ReportComment comment = renderer.render(List.of(new FileReport("models/example.model", "plantuml-source")));
+    void oneRenderedReportProducesGraphicalAndTextualDropdowns() {
+        ReportComment comment = renderer.render(List.of(new FileReport(
+                "models/example.model",
+                "plantuml-source",
+                "diff --model <example>&\""
+        )));
 
         assertTrue(comment.body().contains("### <code>models/example.model</code>"));
         assertTrue(comment.body().contains("<details>"));
-        assertTrue(comment.body().contains("<summary>Rendered SVG</summary>"));
+        assertTrue(comment.body().contains("<summary>Graphical Report</summary>"));
         assertTrue(comment.body().contains("<img src=\"https://plantuml.test/plantuml-source\""));
+        assertTrue(comment.body().contains("<summary>Textual Report</summary>"));
+        assertTrue(comment.body().contains("```diff\ndiff --model <example>&\"\n```"));
     }
 
     @Test

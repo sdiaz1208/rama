@@ -81,7 +81,7 @@ public class RamaApplication {
 
                 if (comparison.getConflicts().isEmpty()) {
                     RenderedMunidiff rendered = render(comparison, file);
-                    fileReports.add(new FileReport(file.filename(), rendered.plantuml()));
+                    fileReports.add(new FileReport(file.filename(), rendered.plantuml(), rendered.unifiedDiff()));
                 }
                 else {
                     fileReports.add(FileReport.conflict(file.filename(), renderConflictReport(comparison, file)));

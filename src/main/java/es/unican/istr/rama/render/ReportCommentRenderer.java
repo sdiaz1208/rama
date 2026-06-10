@@ -33,12 +33,9 @@ public class ReportCommentRenderer {
             if (report.hasConflictReport()) {
                 appendConflictReport(body, report);
             }
-            else if (report.hasPlantuml()) {
-                body.append("<details>\n");
-                body.append("<summary>Rendered SVG</summary>\n\n");
-                appendPlantumlImage(body, report.plantuml(), "RAMA diagram for " + report.filename());
-                body.append("\n");
-                body.append("</details>\n\n");
+            else if (report.hasPlantuml() || report.hasTextualReport()) {
+                appendGraphicalReport(body, report);
+                appendTextualReport(body, report);
             }
             else {
                 body.append("RAMA could not analyze this file.\n\n");
@@ -48,6 +45,31 @@ public class ReportCommentRenderer {
         }
 
         return new ReportComment(COMMENT_MARKER, body.toString());
+    }
+
+    private void appendGraphicalReport(StringBuilder body, FileReport report) {
+        if (!report.hasPlantuml()) {
+            return;
+        }
+
+        body.append("<details>\n");
+        body.append("<summary>Graphical Report</summary>\n\n");
+        appendPlantumlImage(body, report.plantuml(), "RAMA diagram for " + report.filename());
+        body.append("\n");
+        body.append("</details>\n\n");
+    }
+
+    private void appendTextualReport(StringBuilder body, FileReport report) {
+        if (!report.hasTextualReport()) {
+            return;
+        }
+
+        body.append("<details>\n");
+        body.append("<summary>Textual Report</summary>\n\n");
+        body.append("```diff\n");
+        body.append(report.textualReport()).append("\n");
+        body.append("```\n\n");
+        body.append("</details>\n\n");
     }
 
     private void appendConflictReport(StringBuilder body, FileReport report) {
