@@ -27,7 +27,7 @@ else (yes)
   endif
 endif
 
-:Report posted/updated as PR comment;
+:New report posted as PR comment;
 
 stop
 @enduml

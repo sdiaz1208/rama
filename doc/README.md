@@ -10,7 +10,7 @@ This file lists the practical cases that can occur when a PR touches a file with
 
 ## Behavior
 
-At a high level, RAMA runs inside a GitHub Actions workflow on PR events. It loads configuration (from `rama.json` when present), inspects the PR changed paths, and for each relevant model/metamodel file decides which comparison mode applies (2-way or 3-way) before producing/updating a PR comment report.
+At a high level, RAMA runs inside a GitHub Actions workflow on PR events. It loads configuration (from `rama.json` when present), inspects the PR changed paths, and for each relevant model/metamodel file decides which comparison mode applies (2-way or 3-way) before producing a new PR comment report.
 
 The following diagrams summarize the main workflow:
 
