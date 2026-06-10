@@ -1,6 +1,7 @@
 package es.unican.istr.rama.render;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -21,13 +22,34 @@ class ReportCommentRendererTest {
     }
 
     @Test
-    void onePlantumlReportProducesFileSectionDetailsImageAndGeneratedUrl() {
-        ReportComment comment = renderer.render(List.of(new FileReport("models/example.model", "plantuml-source")));
+    void oneRenderedReportProducesGraphicalAndTextualDropdowns() {
+        ReportComment comment = renderer.render(List.of(new FileReport(
+                "models/example.model",
+                "plantuml-source",
+                "diff --model <example>&\""
+        )));
 
         assertTrue(comment.body().contains("### <code>models/example.model</code>"));
         assertTrue(comment.body().contains("<details>"));
-        assertTrue(comment.body().contains("<summary>Rendered SVG</summary>"));
+        assertTrue(comment.body().contains("<summary>Graphical Report</summary>"));
         assertTrue(comment.body().contains("<img src=\"https://plantuml.test/plantuml-source\""));
+        assertTrue(comment.body().contains("<summary>Textual Report</summary>"));
+        assertTrue(comment.body().contains("```diff\ndiff --model <example>&\"\n```"));
+    }
+
+    @Test
+    void metamodelReportDoesNotProduceTextualDropdown() {
+        ReportComment comment = renderer.render(List.of(new FileReport(
+                "metamodels/example.ecore",
+                "plantuml-source",
+                "diff --metamodel",
+                true
+        )));
+
+        assertTrue(comment.body().contains("<summary>Graphical Report</summary>"));
+        assertTrue(comment.body().contains("<img src=\"https://plantuml.test/plantuml-source\""));
+        assertFalse(comment.body().contains("<summary>Textual Report</summary>"));
+        assertFalse(comment.body().contains("```diff\ndiff --metamodel\n```"));
     }
 
     @Test
