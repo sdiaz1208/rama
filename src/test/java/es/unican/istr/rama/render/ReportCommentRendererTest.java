@@ -18,7 +18,7 @@ class ReportCommentRendererTest {
 
         assertEquals("<!-- RAMA:SVG-REPORT -->", comment.marker());
         assertTrue(comment.body().contains("<!-- RAMA:SVG-REPORT -->"));
-        assertTrue(comment.body().contains("No model files were analyzed."));
+        assertTrue(comment.body().contains("No changes to any model/metamodel files were detected."));
     }
 
     @Test
@@ -79,6 +79,18 @@ class ReportCommentRendererTest {
 
         assertTrue(comment.body().contains("RAMA could not analyze this file."));
         assertTrue(comment.body().contains("Could not load &lt;bad&gt;&amp;&quot;model&quot;"));
+    }
+
+    @Test
+    void informationalReportShowsMessageInsteadOfRenderedSvg() {
+        ReportComment comment = renderer.render(List.of(FileReport.message(
+                "models/serialization-only.model",
+                "No model-level changes were detected in this file."
+        )));
+
+        assertTrue(comment.body().contains("### <code>models/serialization-only.model</code>"));
+        assertTrue(comment.body().contains("No model-level changes were detected in this file."));
+        assertTrue(!comment.body().contains("<summary>Rendered SVG</summary>"));
     }
 
     private static class StubPlantUMLEncoderService extends PlantUMLEncoderService {

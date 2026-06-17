@@ -74,19 +74,35 @@ public class RamaApplication {
             System.out.println("Base content length: " + contentLength(file.baseContent()));
 
             try {
+                if (isDeletedWithoutRename(file)) {
+                    fileReports.add(FileReport.message(
+                            file.filename(),
+                            "This file was deleted."
+                    ));
+                    continue;
+                }
+
                 Comparison comparison = modelComparator.compare(file);
 
                 System.out.println("Differences: " + comparison.getDifferences().size());
                 System.out.println("Conflicts: " + comparison.getConflicts().size());
 
                 if (comparison.getConflicts().isEmpty()) {
-                    RenderedMunidiff rendered = render(comparison, file);
-                    fileReports.add(new FileReport(
-                            file.filename(),
-                            rendered.plantuml(),
-                            rendered.unifiedDiff(),
-                            config.isMetamodelFile(file.filename())
-                    ));
+                    if (comparison.getDifferences().isEmpty()) {
+                        fileReports.add(FileReport.message(
+                                file.filename(),
+                                "No model-level changes were detected in this file."
+                        ));
+                    }
+                    else {
+                        RenderedMunidiff rendered = render(comparison, file);
+                        fileReports.add(new FileReport(
+                                file.filename(),
+                                rendered.plantuml(),
+                                rendered.unifiedDiff(),
+                                config.isMetamodelFile(file.filename())
+                        ));
+                    }
                 }
                 else {
                     fileReports.add(FileReport.conflict(file.filename(), renderConflictReport(comparison, file)));
@@ -151,6 +167,7 @@ public class RamaApplication {
     ) throws IOException {
         ModelComparisonInput branchAgainstBase = new ModelComparisonInput(
                 original.filename(),
+                original.previousFilename(),
                 branchContent,
                 original.baseContent(),
                 null
@@ -171,6 +188,12 @@ public class RamaApplication {
                 .stream()
                 .filter(conflict -> conflict.getKind() == kind)
                 .count();
+    }
+
+    private boolean isDeletedWithoutRename(ModelComparisonInput file) {
+        return !file.isRename()
+                && file.sourceContent() == null
+                && (file.targetContent() != null || file.baseContent() != null);
     }
 
     private String diagnostic(String context, Exception ex) {

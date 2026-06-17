@@ -23,7 +23,7 @@ public class ReportCommentRenderer {
         appendHeader(body);
 
         if (reports.isEmpty()) {
-            body.append("No model files were analyzed.");
+            body.append("No changes to any model/metamodel files were detected.");
             return new ReportComment(COMMENT_MARKER, body.toString());
         }
 
@@ -36,6 +36,9 @@ public class ReportCommentRenderer {
             else if (report.hasPlantuml() || report.hasTextualReport()) {
                 appendGraphicalReport(body, report);
                 appendTextualReport(body, report);
+            }
+            else if (report.hasMessage()) {
+                body.append(escapeHtml(report.message())).append("\n\n");
             }
             else {
                 body.append("RAMA could not analyze this file.\n\n");
