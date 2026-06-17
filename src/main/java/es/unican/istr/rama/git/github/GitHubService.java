@@ -145,7 +145,13 @@ public class GitHubService implements GitService {
         String targetContent = fetchFileContent(targetBranch.getRepository(), targetPath, targetBranch.getSha());
         String baseContent = fetchFileContent(targetBranch.getRepository(), targetPath, baseCommitSha);
 
-        return new ModelComparisonInput(file.getFilename(), sourceContent, targetContent, baseContent);
+        return new ModelComparisonInput(
+                file.getFilename(),
+                file.getPreviousFilename(),
+                sourceContent,
+                targetContent,
+                baseContent
+        );
     }
 
     /**
