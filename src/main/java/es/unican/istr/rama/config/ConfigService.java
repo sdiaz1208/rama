@@ -18,33 +18,72 @@ public class ConfigService {
     // RAMA's configuration is read-only and can be safely shared across threads.
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    private final Path configuredWorkspace;
+
+    public ConfigService() {
+        this(null);
+    }
+
+    ConfigService(Path configuredWorkspace) {
+        this.configuredWorkspace = configuredWorkspace;
+    }
+
     /**
-     * Loads the RAMA configuration from the target repository if available, or falls back
-     * to the default configuration packaged with RAMA.
+     * Loads configuration and retains a user-facing warning when RAMA has to use the packaged
+     * default. A missing, empty, unreadable, or malformed repository configuration always uses
+     * that default instead of aborting the analysis.
      *
-     * @return a RamaConfig object containing the model and metamodel file extensions and metamodels
-     * @throws IOException if there is an error reading the configuration file
+     * @return the selected configuration and an optional warning for the report
+     * @throws IOException if the packaged default configuration cannot be read
      */
-    public RamaConfig loadConfig() throws IOException {
-        Path workspace = workspacePathFromEnvironment();
+    public ConfigurationLoadResult loadConfig() throws IOException {
+        Path workspace = configurationWorkspacePath();
 
         if (workspace != null) {
             // Prefer the target repository config checked out by actions/checkout.
             Path targetRepositoryConfig = workspace.resolve(CONFIG_FILENAME);
 
             if (Files.exists(targetRepositoryConfig)) {
-                System.out.println("Using RAMA config from target repository.");
-                return OBJECT_MAPPER.readValue(targetRepositoryConfig.toFile(), RamaConfig.class);
+                try {
+                    String content = Files.readString(targetRepositoryConfig);
+
+                    if (content.isBlank()) {
+                        return useDefaultConfiguration(
+                                "`rama.json` is empty. RAMA is using the packaged default configuration."
+                        );
+                    }
+
+                    System.out.println("Using RAMA config from target repository.");
+                    return new ConfigurationLoadResult(
+                            OBJECT_MAPPER.readValue(content, RamaConfig.class),
+                            null
+                    );
+                }
+                catch (IOException | RuntimeException ex) {
+                    System.err.println("Could not load rama.json. Using default RAMA configuration.");
+                    return useDefaultConfiguration(
+                            "`rama.json` is invalid or unreadable. RAMA is using the packaged default configuration."
+                    );
+                }
             }
         }
 
-        // Fall back to RAMA's packaged default config when the target repository has none.
+        return useDefaultConfiguration(
+                "`rama.json` was not found. RAMA is using the packaged default configuration."
+        );
+    }
+
+    private ConfigurationLoadResult useDefaultConfiguration(String warning) throws IOException {
+        System.out.println("Using default RAMA config.");
+
         try (InputStream defaultConfig = ConfigService.class.getClassLoader().getResourceAsStream(CONFIG_FILENAME)) {
             if (defaultConfig == null) {
                 throw new IllegalStateException("Default RAMA config not found in application resources: " + CONFIG_FILENAME);
             }
-            System.out.println("Using default RAMA config.");
-            return OBJECT_MAPPER.readValue(defaultConfig, RamaConfig.class);
+            return new ConfigurationLoadResult(
+                    OBJECT_MAPPER.readValue(defaultConfig, RamaConfig.class),
+                    warning
+            );
         }
     }
 
@@ -54,8 +93,20 @@ public class ConfigService {
      * @return the configured workspace path, or the current working directory when no workspace was configured
      */
     public Path workspacePath() {
+        if (configuredWorkspace != null) {
+            return configuredWorkspace;
+        }
+
         Path workspace = workspacePathFromEnvironment();
         return workspace == null ? Path.of("") : workspace;
+    }
+
+    private Path configurationWorkspacePath() {
+        if (configuredWorkspace != null) {
+            return configuredWorkspace;
+        }
+
+        return workspacePathFromEnvironment();
     }
 
     private Path workspacePathFromEnvironment() {

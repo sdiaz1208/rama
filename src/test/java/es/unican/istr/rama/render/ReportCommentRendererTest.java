@@ -22,6 +22,17 @@ class ReportCommentRendererTest {
     }
 
     @Test
+    void configurationWarningIsShownBeforeTheReport() {
+        ReportComment comment = renderer.render(
+                List.of(),
+                "`rama.json` is invalid or unreadable. RAMA is using the packaged default configuration."
+        );
+
+        assertTrue(comment.body().contains("**Configuration warning:**"));
+        assertTrue(comment.body().contains("`rama.json` is invalid or unreadable."));
+    }
+
+    @Test
     void oneRenderedReportProducesGraphicalAndTextualDropdowns() {
         ReportComment comment = renderer.render(List.of(new FileReport(
                 "models/example.model",
