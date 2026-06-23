@@ -99,6 +99,25 @@ class RamaApplicationTest {
         assertFalse(gitService.publishedComment.body().contains("<summary>Graphical Report</summary>"));
     }
 
+    @Test
+    void configurationWarningIsIncludedInPublishedComment() throws Exception {
+        FakeGitService gitService = new FakeGitService(List.of());
+
+        RamaApplication app = new RamaApplication(
+                new RamaConfig(List.of(".model"), List.of(".ecore"), List.of()),
+                gitService,
+                new StubComparisonService(comparisonWithoutDifferences()),
+                new TrackingMunidiffRenderer(),
+                new ReportCommentRenderer(new StubPlantUMLEncoderService()),
+                "`rama.json` is invalid or unreadable. RAMA is using the packaged default configuration."
+        );
+
+        app.run(21);
+
+        assertTrue(gitService.publishedComment.body().contains("**Configuration warning:**"));
+        assertTrue(gitService.publishedComment.body().contains("`rama.json` is invalid or unreadable."));
+    }
+
     private static Comparison comparisonWithoutDifferences() {
         return CompareFactory.eINSTANCE.createComparison();
     }
