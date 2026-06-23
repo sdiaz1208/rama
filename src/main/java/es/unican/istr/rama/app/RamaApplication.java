@@ -25,6 +25,7 @@ public class RamaApplication {
     private final ComparisonService modelComparator;
     private final MunidiffRenderer munidiffRenderer;
     private final ReportCommentRenderer reportCommentRenderer;
+    private final String configurationWarning;
 
     public RamaApplication(
             RamaConfig config,
@@ -33,11 +34,30 @@ public class RamaApplication {
             MunidiffRenderer munidiffRenderer,
             ReportCommentRenderer reportCommentRenderer
     ) {
+        this(
+                config,
+                gitService,
+                modelComparator,
+                munidiffRenderer,
+                reportCommentRenderer,
+                null
+        );
+    }
+
+    public RamaApplication(
+            RamaConfig config,
+            GitService gitService,
+            ComparisonService modelComparator,
+            MunidiffRenderer munidiffRenderer,
+            ReportCommentRenderer reportCommentRenderer,
+            String configurationWarning
+    ) {
         this.config = config;
         this.gitService = gitService;
         this.modelComparator = modelComparator;
         this.munidiffRenderer = munidiffRenderer;
         this.reportCommentRenderer = reportCommentRenderer;
+        this.configurationWarning = configurationWarning;
     }
 
     /**
@@ -57,7 +77,8 @@ public class RamaApplication {
             ex.printStackTrace(System.err);
 
             ReportComment comment = reportCommentRenderer.renderFailure(
-                    diagnostic("Could not fetch affected model files.", ex)
+                    diagnostic("Could not fetch affected model files.", ex),
+                    configurationWarning
             );
             gitService.publishComment(pullRequestNumber, comment);
             return;
@@ -121,14 +142,15 @@ public class RamaApplication {
 
         ReportComment comment;
         try {
-            comment = reportCommentRenderer.render(fileReports);
+            comment = reportCommentRenderer.render(fileReports, configurationWarning);
         }
         catch (Exception ex) {
             System.err.println("Could not render RAMA report comment.");
             ex.printStackTrace(System.err);
 
             comment = reportCommentRenderer.renderFailure(
-                    diagnostic("Could not render the RAMA report comment.", ex)
+                    diagnostic("Could not render the RAMA report comment.", ex),
+                    configurationWarning
             );
         }
 

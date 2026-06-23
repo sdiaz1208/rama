@@ -19,8 +19,21 @@ public class ReportCommentRenderer {
      * @return the provider comment to publish
      */
     public ReportComment render(List<FileReport> reports) {
+        return render(reports, null);
+    }
+
+    /**
+     * Builds the provider comment, including a configuration warning when RAMA used its default
+     * configuration because the repository configuration could not be used.
+     *
+     * @param reports the file reports to render
+     * @param configurationWarning warning to display before the report, or {@code null}
+     * @return the provider comment to publish
+     */
+    public ReportComment render(List<FileReport> reports, String configurationWarning) {
         StringBuilder body = new StringBuilder();
         appendHeader(body);
+        appendConfigurationWarning(body, configurationWarning);
 
         if (reports.isEmpty()) {
             body.append("No changes to any model/metamodel files were detected.");
@@ -142,8 +155,20 @@ public class ReportCommentRenderer {
      * @return the provider comment to publish
      */
     public ReportComment renderFailure(String diagnostic) {
+        return renderFailure(diagnostic, null);
+    }
+
+    /**
+     * Builds a provider comment for failures that happen before per-file analysis can start.
+     *
+     * @param diagnostic diagnostic text explaining why the analysis could not run
+     * @param configurationWarning warning to display before the failure diagnostic, or {@code null}
+     * @return the provider comment to publish
+     */
+    public ReportComment renderFailure(String diagnostic, String configurationWarning) {
         StringBuilder body = new StringBuilder();
         appendHeader(body);
+        appendConfigurationWarning(body, configurationWarning);
         body.append("RAMA could not analyze this pull request.\n\n");
         appendDiagnostic(body, diagnostic);
         return new ReportComment(COMMENT_MARKER, body.toString());
@@ -152,6 +177,15 @@ public class ReportCommentRenderer {
     private void appendHeader(StringBuilder body) {
         body.append(COMMENT_MARKER).append("\n");
         body.append("## RAMA Analysis Report").append("\n\n");
+    }
+
+    private void appendConfigurationWarning(StringBuilder body, String configurationWarning) {
+        if (configurationWarning == null || configurationWarning.isBlank()) {
+            return;
+        }
+
+        body.append("> **Configuration warning:** ");
+        body.append(escapeHtml(configurationWarning)).append("\n\n");
     }
 
     private void appendDiagnostic(StringBuilder body, String diagnostic) {
