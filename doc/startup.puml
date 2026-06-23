@@ -14,12 +14,13 @@ if (Is `rama.json` missing/empty/invalid?) then (yes)
   :Use default configuration;
 else (no)
   :Parse configuration;
-  :Set model/metamodel extensions 
+  :Set model/metamodel extensions
    and metamodel resolution rules;
 endif
 
 :Fetch PR file list and changed paths from GitHub API;
 :Analyze each affected file → <pr-model-file-cases-all.puml>;
+:Publish results to GitHub PR as comment;
 
 stop
 @enduml
