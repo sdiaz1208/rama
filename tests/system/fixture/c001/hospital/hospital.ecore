@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="hospital" nsURI="hospital" nsPrefix="">
+  <eClassifiers xsi:type="ecore:EClass" name="Hospital">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="doctors" upperBound="-1"
+        eType="#//Doctor" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="patients" upperBound="-1"
+        eType="#//Patient" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="appointments" upperBound="-1"
+        eType="#//Appointment" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Doctor">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specialization" eType="#//SpecializationType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Patient">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="age" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Appointment">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="date" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//AppointmentType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="doctor" eType="#//Doctor"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="patient" eType="#//Patient"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="SpecializationType">
+    <eLiterals name="GeneralMedicine"/>
+    <eLiterals name="Surgery" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AppointmentType">
+    <eLiterals name="Consultation"/>
+    <eLiterals name="Surgery" value="1"/>
+  </eClassifiers>
+</ecore:EPackage>

@@ -1,0 +1,60 @@
+name: RAMA Analysis
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR repo
+        uses: actions/checkout@v4
+
+      - name: Clone RAMA
+        run: git clone https://github.com/sdiaz1208/rama.git
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          cache-dependency-path: rama/pom.xml
+
+      - name: Install EMF Compare locally
+        run: |
+          mvn install:install-file \
+            -Dfile=libs/org.eclipse.emf.compare_3.5.3.202406060900.jar \
+            -DgroupId=org.eclipse.emf.compare \
+            -DartifactId=org.eclipse.emf.compare \
+            -Dversion=3.5.3 \
+            -Dpackaging=jar
+        working-directory: rama
+
+      - name: Install Modiff libs locally
+        run: |
+          mvn install:install-file \
+            -Dfile=libs/org.eclipse.epsilon.modiff-0.0.1-SNAPSHOT.jar \
+            -DpomFile=libs/org.eclipse.epsilon.modiff-0.0.1-SNAPSHOT.pom.xml
+
+          mvn install:install-file \
+            -Dfile=libs/org.eclipse.epsilon.modiff.emfcompare-0.0.1-SNAPSHOT.jar \
+            -DpomFile=libs/org.eclipse.epsilon.modiff.emfcompare-0.0.1-SNAPSHOT.pom.xml
+        working-directory: rama
+
+      - name: Build RAMA
+        run: mvn clean package
+        working-directory: rama
+
+      - name: Run RAMA
+        run: java -jar target/RAMA.jar ${{ github.event.pull_request.number }}
+        working-directory: rama
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
