@@ -1,0 +1,29 @@
+@namespace(uri="university", prefix="")
+package university;
+
+class University {
+   val Student[*] students;
+   val Course[*] courses;
+   val Professor[*] professors;
+}
+
+class Student {
+   attr String name;
+   ref Course[*] enrolledCourses;
+}
+
+class Course {
+   attr String title;
+   attr int credits = 6;
+   attr CourseLevel level;
+}
+
+class Professor {
+   attr String name;
+   ref Course[*] courses;
+}
+
+enum CourseLevel {
+   Beginner;
+   Intermediate;
+}

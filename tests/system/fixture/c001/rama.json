@@ -1,0 +1,5 @@
+{
+	"model_extensions": [".model"],
+	"metamodel_extensions": [".ecore"],
+	"metamodels": ["library/library.ecore", "hospital/hospital.ecore"]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "title": "add metamodel",
+    "head": "add-metamodel",
+    "base": "main",
+    "body": "Adds the university metamodel."
+  },
+  {
+    "title": "add model",
+    "head": "add-model",
+    "base": "main",
+    "body": "Adds the library-2 model."
+  },
+  {
+    "title": "add metamodel and model",
+    "head": "add-metamodel-and-model",
+    "base": "main",
+    "body": "Adds the university metamodel and the university-1 model."
+  },
+  {
+    "title": "update metamodel and model",
+    "head": "update-metamodel-and-model",
+    "base": "main",
+    "body": "Adds the year of publication attribute to the book class in the Library metamodel and updates the library-1 model accordingly."
+  },
+  {
+    "title": "delete metamodel and model",
+    "head": "delete-metamodel-and-model",
+    "base": "main",
+    "body": "Deletes the library metamodel and the library-1 model."
+  },
+  {
+    "title": "conflicting model",
+    "head": "conflicting-model",
+    "base": "main",
+    "body": "Removes the age attribute from a patient in valdecilla.model. This attribute will be updated in a different commit on the target branch, leading to a conflict."
+  },
+  {
+    "title": "incorrect config",
+    "head": "incorrect-config",
+    "base": "main",
+    "body": "Adds the year of publication attribute to the book class in the Library metamodel. However, the configuration file is missing the library.ecore metamodel."
+  },
+  {
+    "title": "no model/metamodel files changed",
+    "head": "no-model-or-metamodel-files",
+    "base": "main",
+    "body": "No relevant files (models or metamodels) are added, deleted or updated."
+  },
+  {
+    "title": "no relevant model/metamodel changes",
+    "head": "no-relevant-changes",
+    "base": "main",
+    "body": "Changes the libary metamodel and the library-1 model, but they are not relevant to the analysis."
+  },
+  {
+    "title": "update metamodel but not conforming models",
+    "head": "update-metamodel-not-model",
+    "base": "main",
+    "body": "Updates the libary metamodel but leaves the library-1 model unchanged."
+  }
+]

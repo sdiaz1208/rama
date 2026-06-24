@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Hospital xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns="hospital" xmi:id="_FcpVAFf9EfGyRuv7GtEsQQ">
+  <doctors xmi:id="_GVfokFf9EfGyRuv7GtEsQQ" name="Dr P&#xe9;rez"/>
+  <doctors xmi:id="_JTcAYFf9EfGyRuv7GtEsQQ" name="Dr Ram&#xed;rez" specialization="Surgery"/>
+  <patients xmi:id="_Kg6gIFf9EfGyRuv7GtEsQQ" name="Luis Gonz&#xe1;lez" age="19"/>
+  <patients xmi:id="_s4YDEFf-EfGyRuv7GtEsQQ" name="Manolo Garc&#xed;a" age="43"/>
+  <appointments xmi:id="_yPn0kFf-EfGyRuv7GtEsQQ" date="25/5/2026" type="Surgery" doctor="_JTcAYFf9EfGyRuv7GtEsQQ" patient="_s4YDEFf-EfGyRuv7GtEsQQ"/>
+</Hospital>

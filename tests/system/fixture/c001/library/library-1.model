@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Library xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns="library" xmi:id="_V35L8F2OEfGlD6epywiehA">
+  <writers xmi:id="_XLL_0F2OEfGlD6epywiehA" name="Mary Beard" books="_avM5IF2OEfGlD6epywiehA"/>
+  <writers xmi:id="_ZPKpwF2OEfGlD6epywiehA" name="Jules Verne" books="_hnYR4F2OEfGlD6epywiehA"/>
+  <books xmi:id="_avM5IF2OEfGlD6epywiehA" title="SPQR" pages="608" yearOfPublication="2015" category="History" publisher="_eb83sF2OEfGlD6epywiehA"/>
+  <books xmi:id="_hnYR4F2OEfGlD6epywiehA" title="Journey to the Center of the Earth" yearOfPublication="1864" category="Geography" publisher="_gE-rAF2OEfGlD6epywiehA"/>
+  <publishers xmi:id="_eb83sF2OEfGlD6epywiehA" name="Profile Books" country="UK"/>
+  <publishers xmi:id="_gE-rAF2OEfGlD6epywiehA" name="Hetzel" country="France"/>
+</Library>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Library xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns="library" xmi:id="_V35L8F2OEfGlD6epywiehA">
+  <writers xmi:id="_XLL_0F2OEfGlD6epywiehA" name="Mary Beard" books="_avM5IF2OEfGlD6epywiehA"/>
+  <writers xmi:id="_ZPKpwF2OEfGlD6epywiehA" name="Jules Verne" books="_hnYR4F2OEfGlD6epywiehA _19hT4GosEfGkWNcLIJMExQ"/>
+  <books xmi:id="_avM5IF2OEfGlD6epywiehA" title="SPQR" pages="608" yearOfPublication="2015" category="History"/>
+  <books xmi:id="_hnYR4F2OEfGlD6epywiehA" title="Journey to the Center of the Earth" pages="200" yearOfPublication="1864" category="Geography"/>
+  <books xmi:id="_19hT4GosEfGkWNcLIJMExQ" title="Around the World in Eighty Days" pages="250" yearOfPublication="1872" category="Geography"/>
+</Library>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ASCII"?>
+<University xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns="university" xmi:id="_nkbz0Go_EfG0SL6JAr-fAA">
+  <students xmi:id="_-1jJ4Go_EfG0SL6JAr-fAA" name="John Smith" enrolledCourses="_8KZyQGo_EfG0SL6JAr-fAA"/>
+  <students xmi:id="_Ah5-AGpAEfG0SL6JAr-fAA" name="Mariah Jenkins" enrolledCourses="_9fA0wGo_EfG0SL6JAr-fAA _8KZyQGo_EfG0SL6JAr-fAA"/>
+  <courses xmi:id="_8KZyQGo_EfG0SL6JAr-fAA" title="CS50"/>
+  <courses xmi:id="_9fA0wGo_EfG0SL6JAr-fAA" title="Computer Networks 101"/>
+</University>

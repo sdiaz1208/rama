@@ -1,0 +1,35 @@
+@namespace(uri="hospital", prefix="")
+package hospital;
+
+class Hospital {
+   val Doctor[*] doctors;
+   val Patient[*] patients;
+   val Appointment[*] appointments;
+}
+
+class Doctor {
+   attr String name;
+   attr SpecializationType specialization;
+}
+
+class Patient {
+   attr String name;
+   attr int age;
+}
+
+class Appointment {
+   attr String date;
+   attr AppointmentType type;
+   ref Doctor doctor;
+   ref Patient patient;
+}
+
+enum SpecializationType {
+	GeneralMedicine;
+	Surgery;
+}
+
+enum AppointmentType {
+   Consultation;
+   Surgery;
+}
