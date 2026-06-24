@@ -133,7 +133,8 @@ public class EmfModelComparator implements ComparisonService {
         Resource resource = resourceSet.createResource(resourceUri(filename, side));
 
         if (content != null) {
-            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
+            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(
+                    content.getBytes(StandardCharsets.UTF_8))) {
                 resource.load(inputStream, null);
             }
         }

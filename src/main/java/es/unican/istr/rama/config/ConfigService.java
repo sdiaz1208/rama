@@ -78,7 +78,9 @@ public class ConfigService {
 
         try (InputStream defaultConfig = ConfigService.class.getClassLoader().getResourceAsStream(CONFIG_FILENAME)) {
             if (defaultConfig == null) {
-                throw new IllegalStateException("Default RAMA config not found in application resources: " + CONFIG_FILENAME);
+                throw new IllegalStateException(
+                        "Default RAMA config not found in application resources: " + CONFIG_FILENAME
+                );
             }
             return new ConfigurationLoadResult(
                     OBJECT_MAPPER.readValue(defaultConfig, RamaConfig.class),
