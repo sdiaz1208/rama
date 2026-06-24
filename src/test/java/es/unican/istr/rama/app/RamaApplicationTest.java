@@ -1,26 +1,17 @@
 package es.unican.istr.rama.app;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.eclipse.emf.compare.CompareFactory;
-import org.eclipse.emf.compare.Comparison;
-import org.eclipse.emf.compare.Diff;
-import org.eclipse.emf.compare.Match;
+import org.eclipse.emf.compare.*;
 import org.junit.jupiter.api.Test;
 
-import es.unican.istr.rama.comparison.ComparisonService;
-import es.unican.istr.rama.comparison.ModelComparisonInput;
+import es.unican.istr.rama.comparison.*;
 import es.unican.istr.rama.config.RamaConfig;
 import es.unican.istr.rama.git.GitService;
-import es.unican.istr.rama.render.MunidiffRenderer;
-import es.unican.istr.rama.render.RenderedMunidiff;
-import es.unican.istr.rama.render.ReportComment;
-import es.unican.istr.rama.render.ReportCommentRenderer;
+import es.unican.istr.rama.render.*;
 
 class RamaApplicationTest {
 

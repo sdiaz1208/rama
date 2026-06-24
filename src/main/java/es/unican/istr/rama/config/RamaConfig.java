@@ -2,8 +2,7 @@ package es.unican.istr.rama.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 // JSON shape of rama.json.
 public record RamaConfig(

@@ -1,26 +1,15 @@
 package es.unican.istr.rama.git.github;
 
-import org.kohsuke.github.GHCommit;
-import org.kohsuke.github.GHCommitPointer;
-import org.kohsuke.github.GHContent;
-import org.kohsuke.github.GHFileNotFoundException;
-import org.kohsuke.github.GHIssue;
-import org.kohsuke.github.GHPullRequest;
-import org.kohsuke.github.GHPullRequestFileDetail;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
+import org.kohsuke.github.*;
 
 import es.unican.istr.rama.comparison.ModelComparisonInput;
 import es.unican.istr.rama.config.RamaConfig;
 import es.unican.istr.rama.git.GitService;
 import es.unican.istr.rama.render.ReportComment;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class GitHubService implements GitService {
 

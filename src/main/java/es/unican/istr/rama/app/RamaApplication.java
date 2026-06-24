@@ -1,22 +1,14 @@
 package es.unican.istr.rama.app;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import org.eclipse.emf.compare.Comparison;
-import org.eclipse.emf.compare.ConflictKind;
+import org.eclipse.emf.compare.*;
 
-import es.unican.istr.rama.comparison.ComparisonService;
-import es.unican.istr.rama.comparison.ModelComparisonInput;
+import es.unican.istr.rama.comparison.*;
 import es.unican.istr.rama.config.RamaConfig;
 import es.unican.istr.rama.git.GitService;
-import es.unican.istr.rama.render.ConflictReport;
-import es.unican.istr.rama.render.FileReport;
-import es.unican.istr.rama.render.MunidiffRenderer;
-import es.unican.istr.rama.render.RenderedMunidiff;
-import es.unican.istr.rama.render.ReportComment;
-import es.unican.istr.rama.render.ReportCommentRenderer;
+import es.unican.istr.rama.render.*;
 
 public class RamaApplication {
 

@@ -5,18 +5,13 @@ import java.nio.charset.StandardCharsets;
 
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.epsilon.modiff.emfcompare.munidiff.transformations.EmfCompare2Munidiff;
-import org.eclipse.epsilon.modiff.matcher.IdOrNameMatcher;
-import org.eclipse.epsilon.modiff.matcher.Matcher;
+import org.eclipse.epsilon.modiff.matcher.*;
 import org.eclipse.epsilon.modiff.munidiff.Munidiff;
-import org.eclipse.epsilon.modiff.output.LabelProvider;
-import org.eclipse.epsilon.modiff.output.MatcherBasedLabelProvider;
-import org.eclipse.epsilon.modiff.output.graphical.PlantumlEcoreFormatter;
-import org.eclipse.epsilon.modiff.output.graphical.PlantumlFormatter;
+import org.eclipse.epsilon.modiff.output.*;
+import org.eclipse.epsilon.modiff.output.graphical.*;
 import org.eclipse.epsilon.modiff.output.textual.UnifiedDiffFormatter;
 
-import net.sourceforge.plantuml.FileFormat;
-import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.SourceStringReader;
+import net.sourceforge.plantuml.*;
 
 public class MunidiffRenderer {
 

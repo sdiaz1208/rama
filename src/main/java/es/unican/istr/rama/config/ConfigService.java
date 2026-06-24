@@ -2,10 +2,8 @@ package es.unican.istr.rama.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.*;
+import java.nio.file.*;
 
 public class ConfigService {
 
@@ -78,7 +76,9 @@ public class ConfigService {
 
         try (InputStream defaultConfig = ConfigService.class.getClassLoader().getResourceAsStream(CONFIG_FILENAME)) {
             if (defaultConfig == null) {
-                throw new IllegalStateException("Default RAMA config not found in application resources: " + CONFIG_FILENAME);
+                throw new IllegalStateException(
+                        "Default RAMA config not found in application resources: " + CONFIG_FILENAME
+                );
             }
             return new ConfigurationLoadResult(
                     OBJECT_MAPPER.readValue(defaultConfig, RamaConfig.class),
